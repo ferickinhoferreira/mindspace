@@ -1,10 +1,10 @@
 "use client"
 // components/thoughts/thought-editor.tsx
 import { useState, useEffect } from "react"
-import { Loader2, Save, X, Eye, Edit3 } from "lucide-react"
+import { Loader2, Save, X, Eye, Edit3, Globe, Lock } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { THOUGHT_TYPES, TAG_COLORS } from "@/lib/utils"
+import { THOUGHT_TYPES, TAG_COLORS, cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 
 interface Props {
@@ -21,6 +21,7 @@ export function ThoughtEditor({ thought, tags, onSaved, onCancel }: Props) {
     content: thought?.content || "",
     type: thought?.type || "NOTE",
     tagIds: thought?.tags?.map((t: any) => t.tagId) || [],
+    isPublic: thought?.isPublic || false,
   })
   const [preview, setPreview] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -109,11 +110,24 @@ export function ThoughtEditor({ thought, tags, onSaved, onCancel }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setPreview(p => !p)}
-            className={`btn-ghost flex items-center gap-1.5 text-xs ${preview ? "text-brand" : ""}`}
+            onClick={() => setPreview(!preview)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-overlay rounded-lg transition-all"
           >
-            {preview ? <Edit3 size={13} /> : <Eye size={13} />}
-            {preview ? "Editar" : "Preview"}
+            {preview ? <Edit3 size={14} /> : <Eye size={14} />}
+            {preview ? "Editar" : "Visualizar"}
+          </button>
+
+          <button
+            onClick={() => setForm({ ...form, isPublic: !form.isPublic })}
+            className={cn(
+               "flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all border",
+               form.isPublic 
+                 ? "bg-brand/10 border-brand/20 text-brand font-medium" 
+                 : "bg-bg-overlay border-bg-border text-text-muted hover:text-text-primary"
+            )}
+          >
+            {form.isPublic ? <Globe size={14} /> : <Lock size={14} />}
+            {form.isPublic ? "Público" : "Privado"}
           </button>
           <button onClick={onCancel} className="btn-ghost p-1.5">
             <X size={15} />

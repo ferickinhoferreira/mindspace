@@ -8,7 +8,7 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, bio: true, phoneNumber: true, email: true },
+    select: { name: true, bio: true, phoneNumber: true, email: true, image: true, banner: true },
   })
 
   return NextResponse.json({ user })
@@ -18,11 +18,11 @@ export async function PATCH(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { name, bio, phoneNumber } = await req.json()
+  const { name, bio, phoneNumber, image, banner } = await req.json()
 
   const user = await prisma.user.update({
     where: { id: session.user.id },
-    data: { name, bio, phoneNumber },
+    data: { name, bio, phoneNumber, image, banner },
   })
 
   return NextResponse.json({ user })

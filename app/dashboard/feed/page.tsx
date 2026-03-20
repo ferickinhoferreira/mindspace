@@ -1,0 +1,123 @@
+"use client"
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
+import { Loader2, TrendingUp, Compass, Home, MessageSquare, Heart, Share2 } from "lucide-react"
+import Image from "next/image"
+import { formatDistanceToNow } from "date-fns"
+import { ptBR } from "date-fns/locale"
+
+export default function FeedPage() {
+  const { data: session } = useSession()
+  const [thoughts, setThoughts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState("personal") // personal, explore, trending
+
+  useEffect(() => {
+    loadFeed()
+  }, [tab])
+
+  async function loadFeed() {
+    setLoading(true)
+    const res = await fetch(`/api/feed?type=${tab}`)
+    const data = await res.json()
+    setThoughts(data.thoughts || [])
+    setLoading(false)
+  }
+
+  async function toggleLike(id: string) {
+    const res = await fetch("/api/social/like", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ thoughtId: id }),
+    })
+    if (res.ok) {
+       // Optimistic update could go here
+       loadFeed()
+    }
+  }
+
+  return (
+    <div className="p-8 max-w-2xl mx-auto animate-fade-in">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="font-display text-2xl text-text-primary">Feed Social</h1>
+        <div className="flex bg-bg-overlay p-1 rounded-xl border border-bg-border">
+          <button 
+            onClick={() => setTab("personal")}
+            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "personal" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
+          >
+            Seguindo
+          </button>
+          <button 
+            onClick={() => setTab("explore")}
+            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "explore" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
+          >
+            Explorar
+          </button>
+          <button 
+            onClick={() => setTab("trending")}
+            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "trending" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
+          >
+            Em Alta
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-brand" />
+          </div>
+        ) : thoughts.length === 0 ? (
+          <div className="text-center py-20 card opacity-60">
+            <p className="text-sm text-text-muted">Parece que não há nada por aqui ainda...</p>
+          </div>
+        ) : (
+          thoughts.map((thought) => (
+            <div key={thought.id} className="card p-5 hover:border-brand/30 transition-all group">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-10 h-10 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center font-medium overflow-hidden">
+                   {thought.user.image ? (
+                     <Image src={thought.user.image} alt={thought.user.name} width={40} height={40} />
+                   ) : (
+                     thought.user.name?.[0] || "?"
+                   )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-text-primary">{thought.user.name}</span>
+                    <span className="text-[10px] text-text-muted">
+                      • {formatDistanceToNow(new Date(thought.createdAt), { addSuffix: true, locale: ptBR })}
+                    </span>
+                  </div>
+                  <p className="text-text-muted text-[10px] truncate">@{thought.user.id.slice(0, 8)}</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                {thought.title && <h3 className="text-lg font-display text-text-primary mb-2">{thought.title}</h3>}
+                <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{thought.content}</p>
+              </div>
+
+              <div className="flex items-center gap-6 pt-4 border-t border-bg-border/50">
+                <button 
+                  onClick={() => toggleLike(thought.id)}
+                  className={`flex items-center gap-1.5 text-xs transition-colors ${thought.likes?.length > 0 ? "text-red-400 font-medium" : "text-text-muted hover:text-red-400"}`}
+                >
+                  <Heart size={16} fill={thought.likes?.length > 0 ? "currentColor" : "none"} />
+                  {thought._count.likes}
+                </button>
+                <button className="flex items-center gap-1.5 text-xs text-text-muted hover:text-brand transition-colors">
+                  <MessageSquare size={16} />
+                  {thought._count.comments}
+                </button>
+                <button className="flex items-center gap-1.5 text-xs text-text-muted hover:text-brand transition-colors ml-auto">
+                  <Share2 size={16} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}

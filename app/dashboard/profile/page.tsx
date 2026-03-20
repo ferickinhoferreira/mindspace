@@ -2,12 +2,13 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Loader2, Save, User as UserIcon, Phone, FileText } from "lucide-react"
+import Image from "next/image"
 
 export default function ProfilePage() {
   const { data: session, update } = useSession()
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
-  const [form, setForm] = useState({ name: "", bio: "", phoneNumber: "" })
+  const [form, setForm] = useState({ name: "", bio: "", phoneNumber: "", image: "", banner: "" })
   const [message, setMessage] = useState({ type: "", text: "" })
 
   useEffect(() => {
@@ -19,6 +20,8 @@ export default function ProfilePage() {
             name: data.user.name || "",
             bio: data.user.bio || "",
             phoneNumber: data.user.phoneNumber || "",
+            image: data.user.image || "",
+            banner: data.user.banner || "",
           })
           setFetching(false)
         })
@@ -62,6 +65,46 @@ export default function ProfilePage() {
       </div>
 
       <div className="card p-6">
+        <div className="mb-8 p-4 bg-bg-overlay rounded-xl border border-bg-border">
+           <label className="label mb-3 block text-xs">Banner do Perfil (URL)</label>
+           <div className="relative group overflow-hidden rounded-xl border border-bg-border aspect-[3/1] bg-bg-base flex items-center justify-center">
+              {form.banner ? (
+                <Image src={form.banner} alt="Banner" fill className="object-cover" />
+              ) : (
+                <div className="text-text-muted text-xs">Nenhum banner configurado</div>
+              )}
+           </div>
+           <input
+              type="text"
+              className="input mt-3 text-xs"
+              value={form.banner}
+              onChange={(e) => setForm({ ...form, banner: e.target.value })}
+              placeholder="Cole a URL da imagem de banner"
+            />
+        </div>
+
+        <div className="mb-8 flex items-center gap-6">
+           <div className="relative group">
+              <div className="w-24 h-24 rounded-full border-2 border-brand/30 p-1 bg-bg-base overflow-hidden flex items-center justify-center">
+                {form.image ? (
+                  <Image src={form.image} alt="Avatar" width={96} height={96} className="rounded-full" />
+                ) : (
+                  <UserIcon size={40} className="text-text-muted" />
+                )}
+              </div>
+           </div>
+           <div className="flex-1">
+              <label className="label mb-1.5 block">Foto de Perfil (URL)</label>
+              <input
+                type="text"
+                className="input text-sm"
+                value={form.image}
+                onChange={(e) => setForm({ ...form, image: e.target.value })}
+                placeholder="URL da sua foto"
+              />
+           </div>
+        </div>
+
         {message.text && (
           <div className={message.type === "success" ? "bg-green-500/10 text-green-400 p-3 rounded-lg mb-4 text-sm border border-green-500/20" : "bg-red-500/10 text-red-400 p-3 rounded-lg mb-4 text-sm border border-red-500/20"}>
             {message.text}

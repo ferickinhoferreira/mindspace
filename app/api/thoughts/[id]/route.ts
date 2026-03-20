@@ -45,6 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ...(color !== undefined && { color }),
       ...(isPinned !== undefined && { isPinned }),
       ...(isFavorite !== undefined && { isFavorite }),
+      ...(isPublic !== undefined && { isPublic }), // Added isPublic
       ...(tagIds !== undefined && tagIds.length > 0 && {
         tags: { create: tagIds.map((id: string) => ({ tagId: id })) },
       }),

@@ -15,6 +15,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  banner        String?
   password      String?
   bio           String?
   phoneNumber   String?   @unique
@@ -23,6 +24,10 @@ model User {
 
   friends       Friend[]  @relation("UserFriends")
   friendOf      Friend[]  @relation("FriendOf")
+  followers     Follow[]  @relation("UserFollowers")
+  following     Follow[]  @relation("UserFollowing")
+  likes         Like[]
+  comments      Comment[]
 
   accounts  Account[]
   sessions  Session[]
@@ -106,6 +111,7 @@ model Thought {
   title       String?
   content     String
   type        ThoughtType @default(NOTE)
+  isPublic    Boolean     @default(false)
   isPinned    Boolean     @default(false)
   isFavorite  Boolean     @default(false)
   color       String?
@@ -115,6 +121,8 @@ model Thought {
 
   user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags ThoughtTag[]
+  likes    Like[]
+  comments Comment[]
 
   @@index([userId])
   @@index([type])
@@ -137,6 +145,7 @@ model Prompt {
   content     String
   description String?
   model       String?
+  isPublic    Boolean  @default(false)
   isPinned    Boolean  @default(false)
   isFavorite  Boolean  @default(false)
   useCount    Int      @default(0)
@@ -148,6 +157,8 @@ model Prompt {
   user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags     PromptTag[]
+  likes    Like[]
+  comments Comment[]
 
   @@index([userId])
   @@index([categoryId])
@@ -162,6 +173,46 @@ model PromptTag {
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([promptId, tagId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  thoughtId String?
+  promptId  String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thought Thought? @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  prompt  Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, thoughtId])
+  @@unique([userId, promptId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  thoughtId String?
+  promptId  String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thought Thought? @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  prompt  Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
 }
 
 model Friend {

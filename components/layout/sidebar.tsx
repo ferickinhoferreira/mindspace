@@ -15,11 +15,13 @@ import {
   ChevronRight,
   Users,
   User as UserIcon,
+  Home,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV = [
-  { href: "/dashboard", label: "Início", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard/feed", label: "Feed Social", icon: Home },
   { href: "/dashboard/thoughts", label: "Pensamentos", icon: Brain },
   { href: "/dashboard/prompts", label: "Prompts", icon: Zap },
   { href: "/dashboard/tags", label: "Tags", icon: Tags },
