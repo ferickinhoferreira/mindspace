@@ -1,0 +1,169 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  thoughts  Thought[]
+  prompts   Prompt[]
+  tags      Tag[]
+  categories Category[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#6366f1")
+  userId    String
+  createdAt DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thoughts ThoughtTag[]
+  prompts  PromptTag[]
+
+  @@unique([name, userId])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#8b5cf6")
+  icon        String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompts Prompt[]
+
+  @@unique([name, userId])
+}
+
+model Thought {
+  id          String      @id @default(cuid())
+  title       String?
+  content     String
+  type        ThoughtType @default(NOTE)
+  isPinned    Boolean     @default(false)
+  isFavorite  Boolean     @default(false)
+  color       String?
+  userId      String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags ThoughtTag[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model ThoughtTag {
+  thoughtId String
+  tagId     String
+
+  thought Thought @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([thoughtId, tagId])
+}
+
+model Prompt {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  description String?
+  model       String?
+  isPinned    Boolean  @default(false)
+  isFavorite  Boolean  @default(false)
+  useCount    Int      @default(0)
+  categoryId  String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags     PromptTag[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+model PromptTag {
+  promptId String
+  tagId    String
+
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([promptId, tagId])
+}
+
+enum ThoughtType {
+  NOTE
+  IDEA
+  PLAN
+  POEM
+  TEXT
+  JOURNAL
+}
