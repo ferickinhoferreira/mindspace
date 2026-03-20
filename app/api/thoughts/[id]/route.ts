@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const body = await req.json()
-  const { title, content, type, color, isPinned, isFavorite, tagIds } = body
+  const { title, content, type, color, isPinned, isFavorite, tagIds, isPublic } = body
 
   const existing = await prisma.thought.findFirst({
     where: { id: id, userId: session.user.id },

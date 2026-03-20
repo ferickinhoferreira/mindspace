@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
+import Link from "next/link"
 import { Loader2, TrendingUp, Compass, Home, MessageSquare, Heart, Share2 } from "lucide-react"
 import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
@@ -75,16 +76,18 @@ export default function FeedPage() {
           thoughts.map((thought) => (
             <div key={thought.id} className="card p-5 hover:border-brand/30 transition-all group">
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-10 h-10 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center font-medium overflow-hidden">
+                <Link href={`/dashboard/profile/${thought.user.id}`} className="w-10 h-10 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center font-medium overflow-hidden hover:opacity-80 transition-opacity">
                    {thought.user.image ? (
                      <Image src={thought.user.image} alt={thought.user.name} width={40} height={40} />
                    ) : (
                      thought.user.name?.[0] || "?"
                    )}
-                </div>
+                </Link>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-text-primary">{thought.user.name}</span>
+                    <Link href={`/dashboard/profile/${thought.user.id}`} className="text-sm font-semibold text-text-primary hover:text-brand transition-colors">
+                      {thought.user.name}
+                    </Link>
                     <span className="text-[10px] text-text-muted">
                       • {formatDistanceToNow(new Date(thought.createdAt), { addSuffix: true, locale: ptBR })}
                     </span>

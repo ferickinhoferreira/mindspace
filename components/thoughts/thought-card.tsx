@@ -1,7 +1,7 @@
 "use client"
 // components/thoughts/thought-card.tsx
 import { useState } from "react"
-import { Pin, Star, Trash2, Edit3, MoreHorizontal } from "lucide-react"
+import { Pin, Star, Trash2, Edit3, MoreHorizontal, Globe, Lock } from "lucide-react"
 import { cn, timeAgo, THOUGHT_TYPES } from "@/lib/utils"
 
 interface Props {
@@ -37,6 +37,11 @@ export function ThoughtCard({ thought, selected, onClick, onEdit, onDelete, onPi
             </p>
             {thought.isFavorite && <Star size={10} className="text-yellow-400 flex-shrink-0 fill-yellow-400" />}
             {thought.isPinned && <Pin size={10} className="text-brand flex-shrink-0" />}
+            {thought.isPublic ? (
+              <Globe size={10} className="text-brand/60 flex-shrink-0" />
+            ) : (
+              <Lock size={10} className="text-text-muted flex-shrink-0" />
+            )}
           </div>
           {thought.title && (
             <p className="text-text-muted text-xs truncate leading-relaxed">
