@@ -3,12 +3,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const prompt = await prisma.prompt.findFirst({
-    where: { id: params.id, userId: session.user.id },
+    where: { id: id, userId: session.user.id },
     include: { category: true, tags: { include: { tag: true } } },
   })
 
@@ -17,7 +18,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ prompt })
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
@@ -25,16 +27,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { title, content, description, model, categoryId, isPinned, isFavorite, tagIds, incrementUse } = body
 
   const existing = await prisma.prompt.findFirst({
-    where: { id: params.id, userId: session.user.id },
+    where: { id: id, userId: session.user.id },
   })
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   if (tagIds !== undefined) {
-    await prisma.promptTag.deleteMany({ where: { promptId: params.id } })
+    await prisma.promptTag.deleteMany({ where: { promptId: id } })
   }
 
   const prompt = await prisma.prompt.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...(title !== undefined && { title }),
       ...(content !== undefined && { content }),
@@ -54,16 +56,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ prompt })
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const existing = await prisma.prompt.findFirst({
-    where: { id: params.id, userId: session.user.id },
+    where: { id: id, userId: session.user.id },
   })
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  await prisma.prompt.delete({ where: { id: params.id } })
+  await prisma.prompt.delete({ where: { id } })
 
   return NextResponse.json({ success: true })
 }

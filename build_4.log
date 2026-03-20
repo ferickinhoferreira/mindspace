@@ -1,0 +1,18 @@
+Ôû▓ Next.js 16.2.0 (Turbopack)
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 3.6s
+  Running TypeScript ...
+Failed to type check.
+
+./app/api/auth/[...nextauth]/route.ts:3:51
+Type error: Argument of type 'Request' is not assignable to parameter of type 'NextRequest'.
+  Type 'Request' is missing the following properties from type 'NextRequest': cookies, nextUrl, page, ua
+
+  1 | import { handlers } from "@/auth"
+  2 |
+> 3 | export const GET = (req: Request) => handlers.GET(req)
+    |                                                   ^
+  4 | export const POST = (req: Request) => handlers.POST(req)
+  5 |
+Next.js build worker exited with code: 1 and signal: null

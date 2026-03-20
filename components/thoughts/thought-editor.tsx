@@ -208,7 +208,6 @@ export function ThoughtEditor({ thought, tags, onSaved, onCancel }: Props) {
                     className="w-4 h-4 rounded-full transition-transform hover:scale-110"
                     style={{
                       backgroundColor: c,
-                      ring: newTagColor === c ? "2px solid white" : "none",
                       outline: newTagColor === c ? `2px solid ${c}` : "none",
                       outlineOffset: "1px",
                     }}

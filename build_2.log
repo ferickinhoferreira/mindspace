@@ -1,0 +1,31 @@
+Ôû▓ Next.js 16.2.0 (Turbopack)
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 3.8s
+  Running TypeScript ...
+
+  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+  	- include was updated to add '.next/dev/types/**/*.ts'
+
+  The following mandatory changes were made to your tsconfig.json:
+
+  	- jsx was set to react-jsx (next.js uses the React automatic runtime)
+
+Failed to type check.
+
+.next/types/validator.ts:135:31
+Type error: Type 'typeof import("X:/feric/Documents/Meus Programas que Criei/mindspace/app/api/auth/[...nextauth]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/auth/[...nextauth]">'.
+  Types of property 'GET' are incompatible.
+    Type 'AppRouteHandlers' is not assignable to type '(request: NextRequest, context: { params: Promise<{ nextauth: string[]; }>; }) => void | Response | Promise<void | Response>'.
+      Type 'AppRouteHandlers' provides no match for the signature '(request: NextRequest, context: { params: Promise<{ nextauth: string[]; }>; }): void | Response | Promise<void | Response>'.
+
+  133 |   type __IsExpected<Specific extends RouteHandlerConfig<"/api/auth/[...nextauth]">> = Spe...
+  134 |   const handler = {} as typeof import("../../app/api/auth/[...nextauth]/route.js")
+> 135 |   type __Check = __IsExpected<typeof handler>
+      |                               ^
+  136 |   // @ts-ignore
+  137 |   type __Unused = __Check
+  138 | }
+Next.js build worker exited with code: 1 and signal: null

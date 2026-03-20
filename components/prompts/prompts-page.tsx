@@ -125,7 +125,7 @@ export function PromptsPage() {
   const unpinned = prompts.filter(p => !p.isPinned)
 
   // Get unique models in use
-  const usedModels = [...new Set(prompts.filter(p => p.model).map(p => p.model))]
+  const usedModels = Array.from(new Set(prompts.filter(p => p.model).map(p => p.model)))
 
   return (
     <div className="flex h-screen overflow-hidden">
