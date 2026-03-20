@@ -1,3 +1,5 @@
+# ✦ MindSpace
+
 Área de trabalho pessoal para capturar **pensamentos, ideias, textos, poemas** e gerenciar **prompts** com categorias, tags e markdown.
 
 ---
