@@ -1,6 +1,8 @@
-# ✦ MindSpace
-
 Área de trabalho pessoal para capturar **pensamentos, ideias, textos, poemas** e gerenciar **prompts** com categorias, tags e markdown.
+
+---
+
+📖 **Novo no Git?** Veja o nosso [Guia Rápido de Git e GitHub](GIT_GUIDE.md) para aprender a publicar suas alterações!
 
 ---
 
