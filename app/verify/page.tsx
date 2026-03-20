@@ -1,9 +1,9 @@
 "use client"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck, Loader2, ArrowRight } from "lucide-react"
 
-export default function VerifyPage() {
+function VerifyForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
@@ -108,5 +108,17 @@ export default function VerifyPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-bg-base flex items-center justify-center">
+        <Loader2 className="animate-spin text-brand" size={32} />
+      </div>
+    }>
+      <VerifyForm />
+    </Suspense>
   )
 }
