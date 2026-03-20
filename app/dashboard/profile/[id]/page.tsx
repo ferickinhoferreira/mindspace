@@ -21,12 +21,18 @@ export default function UserProfilePage() {
 
   async function loadProfile() {
     setLoading(true)
-    const res = await fetch(`/api/social/profile/${id}`)
-    const data = await res.json()
-    setUser(data.user)
-    setThoughts(data.thoughts || [])
-    setIsFollowing(data.isFollowing)
-    setLoading(false)
+    try {
+      const res = await fetch(`/api/social/profile/${id}`)
+      if (!res.ok) throw new Error("Erro ao carregar perfil")
+      const data = await res.json()
+      setUser(data.user)
+      setThoughts(data.thoughts || [])
+      setIsFollowing(data.isFollowing)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function toggleFollow() {
