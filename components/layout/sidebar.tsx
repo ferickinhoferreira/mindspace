@@ -84,7 +84,7 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
       {/* User */}
       <div className="p-3 border-t border-bg-border">
         <div className="flex items-center gap-2.5 px-2 py-1.5">
-          {user.image ? (
+          {user?.image ? (
             <Image
               src={user.image}
               alt={user.name || ""}
@@ -95,13 +95,13 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
           ) : (
             <div className="w-7 h-7 rounded-full bg-brand/20 border border-brand/20 flex items-center justify-center">
               <span className="text-brand text-xs font-medium">
-                {(user.name || user.email || "U")[0].toUpperCase()}
+                {(user?.name || user?.email || "U")[0].toUpperCase()}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-text-primary text-xs font-medium truncate">{user.name || "Usuário"}</p>
-            <p className="text-text-muted text-xs truncate">{user.email}</p>
+            <p className="text-text-primary text-xs font-medium truncate">{user?.name || "Usuário"}</p>
+            <p className="text-text-muted text-xs truncate">{user?.email}</p>
           </div>
         </div>
       </div>

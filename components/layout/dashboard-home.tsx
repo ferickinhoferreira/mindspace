@@ -33,7 +33,7 @@ export function DashboardHome({ user }: { user: { name?: string | null } }) {
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite"
-  const firstName = user.name?.split(" ")[0] || "você"
+  const firstName = user?.name?.split(" ")[0] || "você"
 
   return (
     <div className="p-8 max-w-5xl mx-auto animate-fade-in">
