@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ user, verify: true }, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Register error:", error)
-    return NextResponse.json({ error: "Erro ao criar conta" }, { status: 500 })
+    return NextResponse.json({ error: "Erro ao criar conta", details: error.message }, { status: 500 })
   }
 }
