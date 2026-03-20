@@ -32,6 +32,11 @@ export default function RegisterPage() {
       return
     }
 
+    if (data.verify) {
+      router.push(`/verify?email=${form.email}&type=email-verification`)
+      return
+    }
+
     await signIn("credentials", {
       email: form.email,
       password: form.password,

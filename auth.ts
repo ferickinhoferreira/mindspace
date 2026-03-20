@@ -4,6 +4,11 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import Credentials from "next-auth/providers/credentials"
 import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google"
+import Facebook from "next-auth/providers/facebook"
+import Discord from "next-auth/providers/discord"
+import Twitter from "next-auth/providers/twitter"
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
+import Resend from "next-auth/providers/resend"
 import { prisma } from "@/lib/prisma"
 import { compare } from "bcryptjs"
 
@@ -17,6 +22,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    Facebook({
+      clientId: process.env.FACEBOOK_CLIENT_ID!,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+    }),
+    Discord({
+      clientId: process.env.DISCORD_CLIENT_ID!,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+    }),
+    Twitter({
+      clientId: process.env.TWITTER_CLIENT_ID!,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+    }),
+    MicrosoftEntraID({
+      clientId: process.env.MICROSOFT_CLIENT_ID!,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+    }),
+    Resend({
+      from: "onboarding@resend.dev",
     }),
     Credentials({
       name: "credentials",
@@ -32,6 +56,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
 
         if (!user || !user.password) return null
+
+        if (!user.emailVerified) {
+          throw new Error("Email não verificado")
+        }
 
         const isValid = await compare(
           credentials.password as string,

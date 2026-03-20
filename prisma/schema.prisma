@@ -16,8 +16,13 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  bio           String?
+  phoneNumber   String?   @unique
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  friends       Friend[]  @relation("UserFriends")
+  friendOf      Friend[]  @relation("FriendOf")
 
   accounts  Account[]
   sessions  Session[]
@@ -157,6 +162,25 @@ model PromptTag {
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([promptId, tagId])
+}
+
+model Friend {
+  id        String   @id @default(cuid())
+  userId    String
+  friendId  String
+  status    FriendStatus @default(PENDING)
+  createdAt DateTime @default(now())
+
+  user   User @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
 }
 
 enum ThoughtType {

@@ -13,6 +13,8 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  Users,
+  User as UserIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -22,6 +24,8 @@ const NAV = [
   { href: "/dashboard/prompts", label: "Prompts", icon: Zap },
   { href: "/dashboard/tags", label: "Tags", icon: Tags },
   { href: "/dashboard/categories", label: "Categorias", icon: FolderOpen },
+  { href: "/dashboard/friends", label: "Amigos", icon: Users },
+  { href: "/dashboard/profile", label: "Perfil", icon: UserIcon },
 ]
 
 export function Sidebar({ user }: { user: { name?: string | null; email?: string | null; image?: string | null } }) {

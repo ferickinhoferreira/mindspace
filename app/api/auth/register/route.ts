@@ -29,6 +29,18 @@ export async function POST(req: NextRequest) {
       select: { id: true, email: true, name: true },
     })
 
+    // Generate 6-digit verification code
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: code,
+        expires: new Date(Date.now() + 3600000), // 1 hour
+      },
+    })
+
+    console.log(`[AUTH] Verification code for ${email}: ${code}`)
+
     // Create default categories for the new user
     await prisma.category.createMany({
       data: [
@@ -40,7 +52,7 @@ export async function POST(req: NextRequest) {
       ],
     })
 
-    return NextResponse.json({ user }, { status: 201 })
+    return NextResponse.json({ user, verify: true }, { status: 201 })
   } catch (error) {
     console.error("Register error:", error)
     return NextResponse.json({ error: "Erro ao criar conta" }, { status: 500 })
