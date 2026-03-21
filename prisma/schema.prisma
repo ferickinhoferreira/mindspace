@@ -283,6 +283,10 @@ enum ThoughtType {
   PHOTO
   VIDEO
   POST
+  STORY
+  SHORT_VIDEO
+  THOUGHT
+  PROMPT
 }
 
 model Republish {
