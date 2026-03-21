@@ -58,7 +58,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     newUser: "/onboarding",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      console.log("JWT callback triggered:", { trigger, userId: user?.id || token?.id })
       if (user) {
         token.id = user.id
         token.email = user.email
@@ -67,6 +68,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token
     },
     async session({ session, token }) {
+      console.log("Session callback triggered:", { userId: token?.id })
       if (session.user && token) {
         session.user.id = token.id as string
         session.user.email = token.email as string
