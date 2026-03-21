@@ -37,6 +37,26 @@ function VerifyForm() {
     }
   }
 
+  async function handleResend() {
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Erro ao reenviar")
+      
+      alert("Código enviado para " + email)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
       <div className="glow-dot" />
@@ -104,7 +124,15 @@ function VerifyForm() {
         </div>
 
         <p className="text-center text-text-muted text-xs mt-6">
-          Não recebeu o código? <button className="text-brand hover:underline">Reenviar</button>
+          Não recebeu o código?{" "}
+          <button 
+            type="button"
+            onClick={handleResend}
+            disabled={loading}
+            className="text-brand hover:underline disabled:opacity-50"
+          >
+            Reenviar
+          </button>
         </p>
       </div>
     </div>

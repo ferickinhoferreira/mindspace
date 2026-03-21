@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { hash } from "bcryptjs"
+import { sendVerificationEmail } from "@/lib/mail"
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,7 +40,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    console.log(`[AUTH] Verification code for ${email}: ${code}`)
+    await sendVerificationEmail(email, code)
+    console.log(`[AUTH] Verification email sent to ${email}: ${code}`)
 
     // Create default categories for the new user
     await prisma.category.createMany({
