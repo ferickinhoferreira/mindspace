@@ -38,9 +38,10 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-2xl text-text-primary">Feed Social</h1>
+    <div className="w-full max-w-2xl mx-auto animate-fade-in pb-24 lg:pb-8">
+      <div className="p-4 lg:p-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
+          <h1 className="font-display text-xl lg:text-2xl text-text-primary">Feed Social</h1>
         <div className="flex bg-bg-overlay p-1 rounded-xl border border-bg-border">
           <button 
             onClick={() => setTab("personal")}
@@ -74,8 +75,8 @@ export default function FeedPage() {
           </div>
         ) : (
           thoughts.map((thought) => (
-            <div key={thought.id} className="card p-5 hover:border-brand/30 transition-all group">
-              <div className="flex items-start gap-4 mb-4">
+            <div key={thought.id} className="card p-4 lg:p-6 rounded-none sm:rounded-2xl border-x-0 sm:border-x hover:border-brand/30 transition-all group">
+              <div className="flex items-start gap-3 lg:gap-4 mb-4 px-2 lg:px-0">
                 <Link href={`/dashboard/profile/${thought.user.id}`} className="w-10 h-10 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center font-medium overflow-hidden hover:opacity-80 transition-opacity">
                    {thought.user.image ? (
                      <Image src={thought.user.image} alt={thought.user.name} width={40} height={40} />

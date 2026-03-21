@@ -29,7 +29,7 @@ export function FABCreate() {
 
   return (
     <>
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-3">
+      <div className="fixed bottom-24 lg:bottom-8 right-6 lg:right-8 z-50 flex flex-col items-end gap-3">
         {/* Speed Dial Menu */}
         <div className={`flex flex-col items-end gap-3 transition-all duration-300 origin-bottom ${
           isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"

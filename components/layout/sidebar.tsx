@@ -39,7 +39,7 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-bg-elevated border-r border-bg-border flex flex-col z-40">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-bg-elevated border-r border-bg-border flex flex-col z-40 hidden lg:flex">
       {/* Logo */}
       <div className="p-5 border-b border-bg-border">
         <div className="flex items-center gap-2.5">
