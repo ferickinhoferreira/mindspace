@@ -38,6 +38,8 @@ model User {
   prompts   Prompt[]
   tags      Tag[]
   categories Category[]
+  conversations Conversation[] @relation("UserConversations")
+  sentMessages  Message[]      @relation("MessageSender")
 }
 
 model Account {
@@ -114,9 +116,7 @@ model Thought {
   title       String?
   content     String
   type        ThoughtType @default(NOTE)
-  isPublic    Boolean     @default(false)
-  isPinned    Boolean     @default(false)
-  isFavorite  Boolean     @default(false)
+  isArchived  Boolean     @default(false)
   mediaUrl    String?
   mediaType   String?     // "image", "video", "short_video"
   userId      String
@@ -129,6 +129,7 @@ model Thought {
   comments Comment[]
   republishes Republish[]
   savedBy     Save[]
+  messages    Message[] @relation("SharedThought")
 
   @@index([userId])
   @@index([type])
@@ -209,16 +210,42 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  userId    String
-  thoughtId String?
-  promptId  String?
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  content         String
+  userId          String
+  thoughtId       String?
+  promptId        String?
+  parentCommentId String?
+  likedByCreator  Boolean  @default(false)
+  createdAt       DateTime @default(now())
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  thought Thought? @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
-  prompt  Prompt?  @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thought       Thought?  @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  prompt        Prompt?   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  parent        Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies       Comment[] @relation("CommentReplies")
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants User[]    @relation("UserConversations")
+  messages     Message[]
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  content        String
+  senderId       String
+  conversationId String
+  sharedThoughtId String?
+  createdAt      DateTime @default(now())
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  sharedThought   Thought?     @relation("SharedThought", fields: [sharedThoughtId], references: [id], onDelete: SetNull)
 }
 
 model Friend {

@@ -7,11 +7,12 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { formatDistanceToNow } from "date-fns"
 import { ThoughtActions } from "@/components/social/thought-actions"
-import {
+import { 
   Loader2, Settings, Grid3X3, Bookmark, RefreshCw, Heart,
   Calendar, Phone, MapPin, Link as LinkIcon, Camera, Play,
-  Image as ImageIcon
+  Image as ImageIcon, Check, X
 } from "lucide-react"
+import { useRef } from "react"
 
 const TABS = [
   { id: "posts",    label: "Postagens",    icon: Grid3X3 },
@@ -22,17 +23,46 @@ const TABS = [
 
 export default function ProfilePage() {
   const { data: session } = useSession()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState<boolean | string>(true)
   const [data, setData] = useState<any>(null)
   const [activeTab, setActiveTab] = useState("posts")
+  
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const bannerInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { fetchProfile() }, [])
 
   async function fetchProfile() {
-    setLoading(true)
+    // only show main loader if data is null
+    if (!data) setLoading(true)
     const res = await fetch("/api/profile")
     if (res.ok) setData(await res.json())
     setLoading(false)
+  }
+
+  async function handleFileUpload(file: File, field: "image" | "banner") {
+    setLoading(field)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+      
+      if (res.ok) {
+        const { url } = await res.json()
+        await fetch("/api/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [field]: url }),
+        })
+        fetchProfile()
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (loading) return (
@@ -86,13 +116,21 @@ export default function ProfilePage() {
         {/* Overlay gradient at bottom */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-bg-base to-transparent" />
         {/* Edit banner button */}
-        <Link
-          href="/dashboard/settings"
-          className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-semibold border border-white/20 hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100"
+        <button
+          onClick={() => bannerInputRef.current?.click()}
+          disabled={loading === "banner"}
+          className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-semibold border border-white/20 hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
         >
-          <Camera size={12} />
-          Editar banner
-        </Link>
+          {loading === "banner" ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />}
+          Alterar banner
+        </button>
+        <input 
+          ref={bannerInputRef} 
+          type="file" 
+          accept="image/*" 
+          className="hidden" 
+          onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], "banner")}
+        />
       </div>
 
       <div className="max-w-2xl mx-auto px-4">
@@ -112,11 +150,20 @@ export default function ProfilePage() {
               )}
             </div>
             {/* Edit overlay */}
-            <Link href="/dashboard/settings"
-              className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            <button 
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={loading === "image"}
+              className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
             >
-              <Camera size={20} className="text-white" />
-            </Link>
+              {loading === "image" ? <Loader2 size={20} className="animate-spin text-white" /> : <Camera size={20} className="text-white" />}
+            </button>
+            <input 
+              ref={avatarInputRef} 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], "image")}
+            />
           </div>
 
           {/* Edit Profile Button */}
