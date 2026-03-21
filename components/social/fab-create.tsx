@@ -11,88 +11,169 @@ import {
   Sparkles,
   X,
   Zap,
+  BookOpen,
 } from "lucide-react"
 import { PostModal } from "./post-modal"
 
-const actions = [
-  { id: "STORY",       icon: Zap,        label: "Story",        gradient: "from-yellow-400 to-orange-500" },
-  { id: "PHOTO",       icon: ImageIcon,  label: "Foto",         gradient: "from-blue-400 to-cyan-500" },
-  { id: "VIDEO",       icon: Video,      label: "Vídeo",        gradient: "from-red-500 to-rose-600" },
-  { id: "SHORT_VIDEO", icon: Play,       label: "Short",        gradient: "from-pink-500 to-fuchsia-600" },
-  { id: "POST",        icon: FileText,   label: "Texto",        gradient: "from-green-400 to-emerald-600" },
-  { id: "THOUGHT",     icon: Lightbulb,  label: "Pensamento",   gradient: "from-amber-400 to-yellow-500" },
-  { id: "PROMPT",      icon: Sparkles,   label: "Prompt IA",    gradient: "from-violet-500 to-purple-600" },
+const ACTIONS = [
+  {
+    id: "POST",
+    icon: FileText,
+    label: "Publicação",
+    sub: "Texto, link ou citação",
+    from: "#7c6af7",
+    to: "#5b52d6",
+  },
+  {
+    id: "STORY",
+    icon: Zap,
+    label: "Story",
+    sub: "Desaparece em 24h",
+    from: "#f09433",
+    to: "#bc1888",
+  },
+  {
+    id: "PHOTO",
+    icon: ImageIcon,
+    label: "Foto",
+    sub: "Imagem do feed",
+    from: "#2196f3",
+    to: "#00bcd4",
+  },
+  {
+    id: "VIDEO",
+    icon: Video,
+    label: "Vídeo",
+    sub: "Vídeo completo",
+    from: "#e53935",
+    to: "#e91e63",
+  },
+  {
+    id: "SHORT_VIDEO",
+    icon: Play,
+    label: "Reels / Short",
+    sub: "Vídeo curto vertical",
+    from: "#e040fb",
+    to: "#7c6af7",
+  },
+  {
+    id: "THOUGHT",
+    icon: Lightbulb,
+    label: "Pensamento",
+    sub: "Ideia ou reflexão",
+    from: "#ff8f00",
+    to: "#f57c00",
+  },
+  {
+    id: "PROMPT",
+    icon: Sparkles,
+    label: "Prompt IA",
+    sub: "Para assistentes de IA",
+    from: "#8e24aa",
+    to: "#5e35b1",
+  },
 ]
 
 export function FABCreate() {
   const [isOpen, setIsOpen] = useState(false)
   const [modalType, setModalType] = useState<string | null>(null)
 
+  function open(id: string) {
+    setModalType(id)
+    setIsOpen(false)
+  }
+
   return (
     <>
-      {/* Backdrop */}
+      {/* ── Only show FAB on desktop (mobile uses bottom nav + button) ── */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-8 right-8 z-50 hidden lg:flex w-14 h-14 rounded-full items-center justify-center text-white shadow-2xl shadow-brand/30 hover:scale-110 active:scale-95 transition-all duration-300"
+        style={{ background: "linear-gradient(135deg, #7c6af7, #e040fb)" }}
+        aria-label="Criar publicação"
+      >
+        <Plus size={28} strokeWidth={2.5} />
+      </button>
+
+      {/* ── Bottom-sheet overlay ── */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-end justify-center"
           onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      <div className="fixed bottom-24 lg:bottom-8 right-5 lg:right-8 z-50 flex flex-col items-end gap-3">
-        {/* Speed Dial */}
-        <div
-          className={`flex flex-col items-end gap-2.5 transition-all duration-300 origin-bottom ${
-            isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
-          }`}
         >
-          {actions.map((action, i) => (
-            <div
-              key={action.id}
-              className="flex items-center gap-3 group"
-              style={{
-                transitionDelay: isOpen ? `${i * 40}ms` : "0ms",
-                transform: isOpen ? "translateX(0)" : "translateX(20px)",
-                opacity: isOpen ? 1 : 0,
-                transition: "all 0.25s ease",
-              }}
-            >
-              {/* Label */}
-              <div className="bg-bg-surface border border-bg-border px-3 py-1.5 rounded-full text-xs font-semibold text-text-primary shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                {action.label}
-              </div>
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
 
-              {/* Action Button */}
+          {/* Sheet */}
+          <div
+            className="relative w-full max-w-lg bg-[#111111] rounded-t-3xl pb-safe shadow-2xl animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1.5 bg-[#333] rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pb-4 pt-1 border-b border-[#222]">
+              <h2 className="text-[17px] font-bold text-white">Criar novo</h2>
               <button
-                onClick={() => {
-                  setModalType(action.id)
-                  setIsOpen(false)
-                }}
-                className={`w-11 h-11 bg-gradient-to-br ${action.gradient} text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:scale-110`}
+                onClick={() => setIsOpen(false)}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#222] hover:bg-[#2a2a2a] transition-colors text-[#aaa] hover:text-white active:scale-95"
               >
-                <action.icon size={18} strokeWidth={2} />
+                <X size={18} strokeWidth={2.5} />
               </button>
             </div>
-          ))}
+
+            {/* Actions grid */}
+            <div className="grid grid-cols-2 gap-3 p-4">
+              {ACTIONS.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => open(action.id)}
+                  className="relative flex items-center gap-3.5 p-4 rounded-2xl bg-[#1a1a1a] hover:bg-[#222] border border-[#2a2a2a] hover:border-[#3a3a3a] active:scale-[0.97] transition-all duration-200 text-left group overflow-hidden"
+                >
+                  {/* Subtle gradient accent */}
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+                    style={{
+                      background: `linear-gradient(135deg, ${action.from}12, ${action.to}08)`,
+                    }}
+                  />
+
+                  {/* Icon */}
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg relative z-10"
+                    style={{
+                      background: `linear-gradient(135deg, ${action.from}, ${action.to})`,
+                    }}
+                  >
+                    <action.icon size={20} strokeWidth={2} className="text-white" />
+                  </div>
+
+                  {/* Label */}
+                  <div className="min-w-0 relative z-10">
+                    <p className="text-[14px] font-bold text-white leading-tight truncate">{action.label}</p>
+                    <p className="text-[11px] text-[#666] mt-0.5 leading-tight truncate">{action.sub}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Cancel */}
+            <div className="px-4 pb-6 pt-1">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="w-full py-3.5 rounded-2xl bg-[#1a1a1a] hover:bg-[#222] border border-[#2a2a2a] text-[#aaa] text-[15px] font-semibold transition-colors active:scale-[0.98]"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* Main FAB */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 active:scale-95 ${
-            isOpen
-              ? "bg-red-500 rotate-45 shadow-red-500/30"
-              : "shadow-brand/30 hover:scale-110"
-          }`}
-          style={
-            isOpen
-              ? {}
-              : { background: "linear-gradient(135deg, #7c6af7, #e040fb)" }
-          }
-        >
-          {isOpen ? <X size={26} strokeWidth={2.5} /> : <Plus size={28} strokeWidth={2.5} />}
-        </button>
-      </div>
-
+      {/* ── Modal ── */}
       {modalType && (
         <PostModal type={modalType} onClose={() => setModalType(null)} />
       )}
