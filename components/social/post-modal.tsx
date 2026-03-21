@@ -193,7 +193,7 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
     <Dialog.Root open onOpenChange={(o) => !o && !loading && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] animate-fade-in" />
-        <Dialog.Content className="fixed bottom-0 sm:top-1/2 sm:bottom-auto left-1/2 -translate-x-1/2 sm:-translate-y-1/2 w-full sm:max-w-[560px] bg-bg-surface border border-bg-border sm:rounded-2xl shadow-2xl z-[101] overflow-hidden rounded-t-3xl animate-slide-up sm:animate-scale-in">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] sm:max-w-[560px] bg-bg-surface border border-bg-border rounded-2xl shadow-2xl z-[101] overflow-hidden animate-scale-in">
           
           <Dialog.Title className="sr-only">
             {editData ? "Editar Publicação" : cfg.title}

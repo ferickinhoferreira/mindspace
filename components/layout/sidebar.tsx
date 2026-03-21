@@ -38,6 +38,10 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
     return pathname.startsWith(href)
   }
 
+  function handleOpenCreate() {
+    window.dispatchEvent(new CustomEvent("open-create-sheet"))
+  }
+
   return (
     <aside className="fixed left-0 top-0 h-screen w-[72px] xl:w-[280px] bg-bg-base border-r border-bg-border-subtle flex flex-col z-40 hidden lg:flex transition-all duration-200">
       {/* Logo */}
@@ -79,15 +83,15 @@ export function Sidebar({ user }: { user: { name?: string | null; email?: string
         })}
       </nav>
 
-      {/* Post Button */}
+      {/* Post Button - NOW OPENS MODAL */}
       <div className="px-3 mt-2 mb-4">
-        <Link 
-          href="/dashboard/feed"
+        <button 
+          onClick={handleOpenCreate}
           className="flex items-center justify-center xl:justify-start gap-3 bg-brand hover:bg-brand-dim text-white font-bold text-[15px] rounded-full h-12 w-12 xl:h-auto xl:w-full xl:px-6 xl:py-3.5 transition-all duration-200 active:scale-95 shadow-lg shadow-brand/20"
         >
           <PenSquare size={20} className="flex-shrink-0" />
           <span className="hidden xl:block">Publicar</span>
-        </Link>
+        </button>
       </div>
 
       {/* User Footer */}

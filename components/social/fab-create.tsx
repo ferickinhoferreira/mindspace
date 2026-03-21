@@ -42,15 +42,7 @@ export function FABCreate() {
 
   return (
     <>
-      {/* ── FAB - NOW CENTERED ── */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 hidden lg:flex w-16 h-16 rounded-full items-center justify-center text-white shadow-[0_0_30px_rgba(124,106,247,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 border-4 border-black"
-        style={{ background: "linear-gradient(135deg, #7c6af7, #e040fb)" }}
-        aria-label="Criar publicação"
-      >
-        <Plus size={32} strokeWidth={2.5} />
-      </button>
+      {/* FAB TRIGGER REMOVED TO UNIFY INTERFACE - ACCESSIBLE VIA SIDEBAR EVENT */}
 
       {/* ── Bottom-sheet overlay ── */}
       {isOpen && (
