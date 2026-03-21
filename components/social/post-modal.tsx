@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 import { AudioRecorder } from "./audio-recorder"
 import { AudioPlayer } from "./audio-player"
+// @ts-ignore
 import { upload } from "@vercel/blob/client"
 
 interface PostModalProps {
@@ -164,7 +165,7 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
       const newBlob = await upload(file.name, file, {
         access: "public",
         handleUploadUrl: "/api/upload/blob",
-        onUploadProgress: (progressEvent) => {
+        onUploadProgress: (progressEvent: any) => {
           const percent = progressEvent.percentage
           setUploadProgress(percent)
           
