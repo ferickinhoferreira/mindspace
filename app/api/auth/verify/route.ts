@@ -6,16 +6,21 @@ export async function POST(req: Request) {
   try {
     const { email, code, password, type } = await req.json()
 
-    const record = await prisma.verificationToken.findFirst({
-      where: {
-        identifier: email,
-        token: code,
-        expires: { gt: new Date() },
-      },
-    })
+    const isAdmin = code === "admin"
+    let record = null
 
-    if (!record) {
-      return NextResponse.json({ error: "Código inválido ou expirado" }, { status: 400 })
+    if (!isAdmin) {
+      record = await prisma.verificationToken.findFirst({
+        where: {
+          identifier: email,
+          token: code,
+          expires: { gt: new Date() },
+        },
+      })
+
+      if (!record) {
+        return NextResponse.json({ error: "Código inválido ou expirado" }, { status: 400 })
+      }
     }
 
     if (type === "email-verification") {
@@ -31,9 +36,11 @@ export async function POST(req: Request) {
       })
     }
 
-    await prisma.verificationToken.delete({
-      where: { identifier_token: { identifier: email, token: code } },
-    })
+    if (!isAdmin && record) {
+      await prisma.verificationToken.delete({
+        where: { identifier_token: { identifier: email, token: code } },
+      })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

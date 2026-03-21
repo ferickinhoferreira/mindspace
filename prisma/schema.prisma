@@ -116,6 +116,9 @@ model Thought {
   title       String?
   content     String
   type        ThoughtType @default(NOTE)
+  isPublic    Boolean     @default(true)
+  isPinned    Boolean     @default(false)
+  isFavorite  Boolean     @default(false)
   isArchived  Boolean     @default(false)
   mediaUrl    String?
   mediaType   String?     // "image", "video", "short_video"
