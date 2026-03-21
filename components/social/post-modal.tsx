@@ -140,7 +140,8 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
         onClose()
         window.location.reload()
       } else {
-        setError("Erro ao salvar publicação. Tente novamente.")
+        const data = await res.json()
+        setError(data.details || data.error || "Erro ao salvar publicação. Tente novamente.")
       }
     } catch (err: any) {
       console.error(err)
