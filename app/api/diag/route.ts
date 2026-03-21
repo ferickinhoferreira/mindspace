@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 export async function GET() {
   const diag = {
     env: {
-      AUTH_SECRET: process.env.AUTH_SECRET ? "Present (Hidden)" : "MISSING",
-      DATABASE_URL: process.env.DATABASE_URL ? "Present (Hidden)" : "MISSING",
+      AUTH_SECRET: process.env.AUTH_SECRET ? "Present" : "MISSING",
+      DATABASE_URL: process.env.DATABASE_URL ? "Present" : "MISSING",
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? "Present" : "MISSING",
+      GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ? "Present" : "MISSING",
       NODE_ENV: process.env.NODE_ENV,
       NEXT_RUNTIME: process.env.NEXT_RUNTIME || "nodejs",
     },
