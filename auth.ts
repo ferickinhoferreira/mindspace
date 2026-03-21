@@ -13,6 +13,7 @@ import { compare } from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: true,
+  secret: process.env.AUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   providers: [
     ...(process.env.GITHUB_CLIENT_ID ? [GitHub({ clientId: process.env.GITHUB_CLIENT_ID, clientSecret: process.env.GITHUB_CLIENT_SECRET })] : []),
