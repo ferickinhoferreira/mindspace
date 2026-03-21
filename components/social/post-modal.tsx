@@ -142,9 +142,9 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
       } else {
         setError("Erro ao salvar publicação. Tente novamente.")
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
-      setError("Falha na conexão. Verifique sua rede.")
+      setError(err.message || "Falha na conexão. Verifique sua rede.")
     } finally {
       setLoading(false)
     }
@@ -176,7 +176,12 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
             const res = JSON.parse(xhr.responseText)
             resolve(res.url)
           } else {
-            reject(new Error("Upload failed"))
+            try {
+              const res = JSON.parse(xhr.responseText)
+              reject(new Error(res.tip || res.error || "Upload failed"))
+            } catch {
+              reject(new Error("Upload failed"))
+            }
           }
         }
       }

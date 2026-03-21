@@ -23,18 +23,35 @@ export async function POST(req: Request) {
     // --- VERCEL BLOB SUPPORT (Production) ---
     // If BLOB_READ_WRITE_TOKEN is set, use it. This is the fix for Vercel production.
     if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(file.name, file, {
-        access: "public",
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-      })
-      return NextResponse.json({ 
-        url: blob.url, 
-        size: file.size,
-        message: "Upload successful (Vercel Blob)"
-      })
+      try {
+        const blob = await put(file.name, file, {
+          access: "public",
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        })
+        return NextResponse.json({ 
+          url: blob.url, 
+          size: file.size,
+          message: "Upload successful (Vercel Blob)"
+        })
+      } catch (blobError: any) {
+        console.error("Vercel Blob Error:", blobError)
+        return NextResponse.json({ 
+          error: "Erro no Vercel Blob: " + blobError.message,
+          tip: "Certifique-se de que o Blob Storage está CRIADO e ATIVO na aba 'Storage' do Vercel."
+        }, { status: 500 })
+      }
     }
 
     // --- LOCAL FALLBACK (Development) ---
+    // Note: This only works on your local machine (localhost). 
+    // Vercel production needs Blob Storage.
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ 
+        error: "Upload local não suportado em produção.",
+        tip: "Vá no painel do Vercel -> Storage -> Connect Store -> Blob para ativar os uploads."
+      }, { status: 500 })
+    }
+
     const fileName = `${Date.now()}-${file.name.replace(/\s/g, "-")}`
     const relativePath = `/uploads/${fileName}`
     const absolutePath = path.join(process.cwd(), "public", "uploads", fileName)
@@ -59,7 +76,7 @@ export async function POST(req: Request) {
     console.error("Upload error detail:", error)
     return NextResponse.json({ 
       error: "Upload failed: " + (error as Error).message,
-      tip: "If in production, make sure BLOB_READ_WRITE_TOKEN is set in Vercel."
+      tip: "Verifique os logs do servidor no Vercel para mais detalhes."
     }, { status: 500 })
   }
 }
