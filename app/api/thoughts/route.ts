@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const body = await req.json()
-  const { title, content, type, color, isPinned, isFavorite, tagIds, isPublic } = body
+  const { title, content, type, mediaUrl, mediaType, isPinned, isFavorite, tagIds, isPublic } = body
 
   if (!content) return NextResponse.json({ error: "Conteúdo obrigatório" }, { status: 400 })
 
@@ -55,9 +55,10 @@ export async function POST(req: NextRequest) {
     data: {
       title,
       content,
-      type: type || "NOTE",
-      color,
-      isPublic: isPublic || false,
+      type: type || "POST",
+      mediaUrl,
+      mediaType,
+      isPublic: isPublic ?? false,
       userId: session.user.id,
       tags: tagIds?.length
         ? { create: tagIds.map((id: string) => ({ tagId: id })) }

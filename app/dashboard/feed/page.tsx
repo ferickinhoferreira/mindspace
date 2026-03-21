@@ -99,6 +99,25 @@ export default function FeedPage() {
               <div className="mb-6">
                 {thought.title && <h3 className="text-lg font-display text-text-primary mb-2">{thought.title}</h3>}
                 <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{thought.content}</p>
+                {thought.mediaUrl && (
+                  <div className="mt-4 rounded-2xl overflow-hidden border border-bg-border bg-bg-base/50 group-hover:border-brand/30 transition-colors shadow-inner">
+                    {thought.mediaType === "video" || thought.mediaType === "short_video" ? (
+                      <video 
+                        src={thought.mediaUrl} 
+                        controls 
+                        className="w-full aspect-video object-cover outline-none" 
+                      />
+                    ) : (
+                      <div className="relative w-full h-auto min-h-[200px] flex items-center justify-center bg-bg-overlay">
+                        <img 
+                          src={thought.mediaUrl} 
+                          alt="Feed Content" 
+                          className="w-full h-auto max-h-[500px] object-contain" 
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-6 pt-4 border-t border-bg-border/50">

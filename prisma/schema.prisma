@@ -114,7 +114,8 @@ model Thought {
   isPublic    Boolean     @default(false)
   isPinned    Boolean     @default(false)
   isFavorite  Boolean     @default(false)
-  color       String?
+  mediaUrl    String?
+  mediaType   String?     // "image", "video", "short_video"
   userId      String
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -241,4 +242,7 @@ enum ThoughtType {
   POEM
   TEXT
   JOURNAL
+  PHOTO
+  VIDEO
+  POST
 }

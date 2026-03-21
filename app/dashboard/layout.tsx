@@ -2,6 +2,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
+import { FABCreate } from "@/components/social/fab-create"
 
 export default async function DashboardLayout({
   children,
@@ -14,8 +15,9 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-bg-base flex">
       <Sidebar user={session.user || {}} />
-      <main className="flex-1 ml-64 min-h-screen">
+      <main className="flex-1 ml-64 min-h-screen relative">
         {children}
+        <FABCreate />
       </main>
     </div>
   )
