@@ -1,14 +1,24 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { Loader2, Save, User as UserIcon, Phone, FileText } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
+import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatDistanceToNow } from "date-fns"
 import { ThoughtActions } from "@/components/social/thought-actions"
-import { Grid, Bookmark, RefreshCw, Settings as SettingsIcon, MapPin, Calendar, Link as LinkIcon } from "lucide-react"
-import * as Tabs from "@radix-ui/react-tabs"
+import {
+  Loader2, Settings, Grid3X3, Bookmark, RefreshCw, Heart,
+  Calendar, Phone, MapPin, Link as LinkIcon, Camera, Play,
+  Image as ImageIcon
+} from "lucide-react"
+
+const TABS = [
+  { id: "posts",    label: "Postagens",    icon: Grid3X3 },
+  { id: "reposts",  label: "Republicados", icon: RefreshCw },
+  { id: "saved",    label: "Salvos",       icon: Bookmark },
+  { id: "media",    label: "Mídia",        icon: ImageIcon },
+]
 
 export default function ProfilePage() {
   const { data: session } = useSession()
@@ -16,208 +26,313 @@ export default function ProfilePage() {
   const [data, setData] = useState<any>(null)
   const [activeTab, setActiveTab] = useState("posts")
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
+  useEffect(() => { fetchProfile() }, [])
 
   async function fetchProfile() {
     setLoading(true)
     const res = await fetch("/api/profile")
-    if (res.ok) {
-      const json = await res.json()
-      setData(json)
-    }
+    if (res.ok) setData(await res.json())
     setLoading(false)
   }
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <Loader2 className="animate-spin text-brand" />
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 rounded-full border-2 border-brand border-t-transparent animate-spin" />
+        <p className="text-text-muted text-sm">Carregando perfil...</p>
+      </div>
     </div>
   )
 
-  if (!data) return null
+  if (!data) return (
+    <div className="min-h-screen flex items-center justify-center text-text-muted">
+      Nenhum dado encontrado.
+    </div>
+  )
 
   const { user, thoughts, republishes, savedPosts } = data
 
+  // Collections for each tab
+  const mediaThoughts = thoughts.filter((t: any) => t.mediaUrl)
+  const tabContent: Record<string, any[]> = {
+    posts: thoughts,
+    reposts: republishes,
+    saved: savedPosts,
+    media: mediaThoughts,
+  }
+
+  const joinDate = user.createdAt
+    ? format(new Date(user.createdAt), "MMMM 'de' yyyy", { locale: ptBR })
+    : null
+
+  const username = user.id ? `@${user.id.slice(0, 12)}` : "@mindspace"
+
   return (
-    <div className="min-h-screen bg-bg-base animate-fade-in pb-20">
-      {/* Banner */}
-      <div className="relative h-48 lg:h-64 w-full bg-bg-overlay overflow-hidden">
+    <div className="min-h-screen bg-bg-base pb-24 animate-fade-in">
+
+      {/* ── Banner ── */}
+      <div className="relative h-44 sm:h-56 lg:h-64 w-full overflow-hidden group">
         {user.banner ? (
           <Image src={user.banner} alt="Banner" fill className="object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-brand/20 to-pink-500/20" />
+          <div className="w-full h-full" style={{
+            background: "linear-gradient(135deg, #1a0a3e 0%, #0d1a3e 30%, #0a2a1a 60%, #1a1a0a 100%)"
+          }}>
+            <div className="absolute inset-0 opacity-30" style={{
+              backgroundImage: "radial-gradient(circle at 20% 50%, #7c6af7 0%, transparent 50%), radial-gradient(circle at 80% 20%, #e040fb 0%, transparent 40%), radial-gradient(circle at 60% 80%, #f43f5e 0%, transparent 35%)"
+            }} />
+          </div>
         )}
+        {/* Overlay gradient at bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-bg-base to-transparent" />
+        {/* Edit banner button */}
+        <Link
+          href="/dashboard/settings"
+          className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-semibold border border-white/20 hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100"
+        >
+          <Camera size={12} />
+          Editar banner
+        </Link>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 lg:px-8">
-        {/* Profile Header */}
-        <div className="relative -mt-16 mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5">
-              <div className="relative">
-                <div className="w-32 h-32 rounded-full border-4 border-bg-base bg-bg-base overflow-hidden shadow-xl ring-2 ring-brand/20">
-                  {user.image ? (
-                    <Image src={user.image} alt={user.name} width={128} height={128} className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-brand/10 text-brand text-4xl font-bold">
-                      {user.name?.[0] || "?"}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="text-center sm:text-left pb-2">
-                <h1 className="text-2xl lg:text-3xl font-display text-text-primary tracking-tight">{user.name}</h1>
-                <p className="text-text-muted text-sm mt-1">@{user.id.slice(0, 8)}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-center gap-3 pb-2">
-              <Link 
-                href="/dashboard/settings" 
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-bg-overlay border border-bg-border text-sm font-semibold hover:bg-bg-border transition-all"
-              >
-                <SettingsIcon size={16} />
-                Editar Perfil
-              </Link>
-            </div>
-          </div>
+      <div className="max-w-2xl mx-auto px-4">
 
-          <div className="mt-6 space-y-4">
-            {user.bio && (
-              <p className="text-text-secondary text-sm lg:text-base leading-relaxed max-w-2xl text-center sm:text-left">
-                {user.bio}
-              </p>
-            )}
-
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-text-muted">
-              <div className="flex items-center gap-1.5">
-                <Calendar size={14} />
-                <span>Entrou em Março 2026</span>
-              </div>
-              {user.phoneNumber && (
-                <div className="flex items-center gap-1.5">
-                  <Phone size={14} />
-                  <span>{user.phoneNumber}</span>
+        {/* ── Avatar + Actions row ── */}
+        <div className="flex items-end justify-between -mt-14 sm:-mt-16 mb-4 relative z-10">
+          {/* Avatar */}
+          <div className="relative group">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-bg-base shadow-2xl">
+              {user.image ? (
+                <Image src={user.image} alt={user.name || "Avatar"} width={128} height={128} className="object-cover w-full h-full" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl font-black text-white"
+                  style={{ background: "linear-gradient(135deg, #7c6af7, #e040fb)" }}>
+                  {user.name?.[0]?.toUpperCase() || "?"}
                 </div>
               )}
             </div>
+            {/* Edit overlay */}
+            <Link href="/dashboard/settings"
+              className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Camera size={20} className="text-white" />
+            </Link>
+          </div>
 
-            {/* Stats */}
-            <div className="flex items-center justify-center sm:justify-start gap-8 py-4 border-t border-b border-bg-border/50">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                <span className="text-sm font-bold text-text-primary">{user._count.thoughts}</span>
-                <span className="text-xs text-text-muted">Publicações</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                <span className="text-sm font-bold text-text-primary">{user._count.followers}</span>
-                <span className="text-xs text-text-muted">Seguidores</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                <span className="text-sm font-bold text-text-primary">{user._count.following}</span>
-                <span className="text-xs text-text-muted">Seguindo</span>
-              </div>
-            </div>
+          {/* Edit Profile Button */}
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center gap-2 px-5 py-2 rounded-full border border-bg-border text-sm font-bold text-text-primary hover:bg-bg-surface transition-all active:scale-95"
+          >
+            <Settings size={14} />
+            Editar perfil
+          </Link>
+        </div>
+
+        {/* ── User Info ── */}
+        <div className="mb-5 space-y-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight leading-tight">
+              {user.name || "Sem nome"}
+            </h1>
+            <p className="text-text-muted text-sm mt-0.5">{username}</p>
+          </div>
+
+          {user.bio && (
+            <p className="text-text-secondary text-sm sm:text-[15px] leading-relaxed">
+              {user.bio}
+            </p>
+          )}
+
+          {/* Metadata row */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-text-muted text-sm">
+            {joinDate && (
+              <span className="flex items-center gap-1.5">
+                <Calendar size={14} className="shrink-0" />
+                Entrou em {joinDate}
+              </span>
+            )}
+            {user.phoneNumber && (
+              <span className="flex items-center gap-1.5">
+                <Phone size={14} className="shrink-0" />
+                {user.phoneNumber}
+              </span>
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center gap-5 text-sm">
+            <Link href="/dashboard/friends" className="flex items-center gap-1.5 group">
+              <span className="font-bold text-text-primary group-hover:underline">{user._count?.following ?? 0}</span>
+              <span className="text-text-muted">Seguindo</span>
+            </Link>
+            <Link href="/dashboard/friends" className="flex items-center gap-1.5 group">
+              <span className="font-bold text-text-primary group-hover:underline">{user._count?.followers ?? 0}</span>
+              <span className="text-text-muted">Seguidores</span>
+            </Link>
+            <span className="flex items-center gap-1.5">
+              <span className="font-bold text-text-primary">{user._count?.thoughts ?? 0}</span>
+              <span className="text-text-muted">Postagens</span>
+            </span>
           </div>
         </div>
 
-        {/* Tabs Content */}
-        <Tabs.Root defaultValue="posts" onValueChange={setActiveTab}>
-          <Tabs.List className="flex items-center justify-center gap-8 lg:gap-16 border-b border-bg-border mb-8">
-            <Tabs.Trigger 
-              value="posts"
-              className={`pb-4 px-4 text-xs font-bold uppercase tracking-wider transition-all border-b-2 hover:text-text-primary ${activeTab === "posts" ? "border-brand text-brand" : "border-transparent text-text-muted"}`}
-            >
-              <div className="flex items-center gap-2">
-                <Grid size={16} />
-                Postagens
-              </div>
-            </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="reposts"
-              className={`pb-4 px-4 text-xs font-bold uppercase tracking-wider transition-all border-b-2 hover:text-text-primary ${activeTab === "reposts" ? "border-brand text-brand" : "border-transparent text-text-muted"}`}
-            >
-              <div className="flex items-center gap-2">
-                <RefreshCw size={16} />
-                Republicados
-              </div>
-            </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="saved"
-              className={`pb-4 px-4 text-xs font-bold uppercase tracking-wider transition-all border-b-2 hover:text-text-primary ${activeTab === "saved" ? "border-brand text-brand" : "border-transparent text-text-muted"}`}
-            >
-              <div className="flex items-center gap-2">
-                <Bookmark size={16} />
-                Salvos
-              </div>
-            </Tabs.Trigger>
-          </Tabs.List>
+        {/* ── Tabs ── */}
+        <div className="border-b border-bg-border mb-0">
+          <div className="flex items-center">
+            {TABS.map(tab => {
+              const Icon = tab.icon
+              const active = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 flex-1 justify-center py-4 text-xs sm:text-sm font-bold relative transition-colors ${
+                    active ? "text-text-primary" : "text-text-muted hover:text-text-secondary hover:bg-white/[0.03]"
+                  }`}
+                >
+                  <Icon size={15} />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  {active && (
+                    <span className="absolute bottom-0 inset-x-0 h-[3px] rounded-t-full" style={{ background: "linear-gradient(90deg, #7c6af7, #e040fb)" }} />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-          <Tabs.Content value="posts" className="space-y-6">
-            {thoughts.length === 0 ? (
-              <div className="text-center py-20 card opacity-60">
-                <p className="text-sm text-text-muted">Você ainda não postou nada.</p>
-              </div>
+        {/* ── Tab: Media Grid ── */}
+        {activeTab === "media" && (
+          <div className="pt-1">
+            {mediaThoughts.length === 0 ? (
+              <EmptyState message="Nenhuma mídia publicada ainda." icon={ImageIcon} />
             ) : (
-              thoughts.map((thought: any) => (
-                <div key={thought.id} className="card p-4 lg:p-6 rounded-2xl border hover:border-brand/30 transition-all">
-                  <div className="mb-4">
-                    {thought.title && <h3 className="text-lg font-display text-text-primary mb-2">{thought.title}</h3>}
-                    <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{thought.content}</p>
-                    {thought.mediaUrl && (
-                      <div className="mt-4 rounded-xl overflow-hidden border border-bg-border">
-                         <img src={thought.mediaUrl} alt="" className="w-full h-auto max-h-[400px] object-contain" />
-                      </div>
+              <div className="grid grid-cols-3 gap-[2px]">
+                {mediaThoughts.map((t: any) => (
+                  <div key={t.id} className="aspect-square relative overflow-hidden bg-bg-surface group cursor-pointer">
+                    {t.mediaType === "video" || t.mediaType === "short_video" ? (
+                      <>
+                        <video src={t.mediaUrl} className="w-full h-full object-cover" muted />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Play size={24} className="text-white drop-shadow-lg" />
+                        </div>
+                      </>
+                    ) : (
+                      <img src={t.mediaUrl} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                     )}
+                    {/* Hover overlay with stats */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white text-sm font-bold">
+                      <span className="flex items-center gap-1">
+                        <Heart size={14} /> {t._count?.likes ?? 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <RefreshCw size={14} /> {t._count?.republishes ?? 0}
+                      </span>
+                    </div>
                   </div>
-                  <ThoughtActions thought={thought} onUpdate={fetchProfile} />
-                </div>
-              ))
-            )}
-          </Tabs.Content>
-
-          <Tabs.Content value="reposts" className="space-y-6">
-            {republishes.length === 0 ? (
-              <div className="text-center py-20 card opacity-60">
-                <p className="text-sm text-text-muted">Nenhuma república por aqui.</p>
+                ))}
               </div>
-            ) : (
-              republishes.map((thought: any) => (
-                <div key={thought.id} className="card p-4 lg:p-6 rounded-2xl border hover:border-brand/30 transition-all">
-                  <div className="flex items-center gap-2 text-[10px] text-text-muted mb-4 px-2">
-                    <RefreshCw size={12} />
-                    <span>Você republicou</span>
-                  </div>
-                  <div className="mb-4">
-                    {thought.title && <h3 className="text-lg font-display text-text-primary mb-2">{thought.title}</h3>}
-                    <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{thought.content}</p>
-                  </div>
-                  <ThoughtActions thought={thought} onUpdate={fetchProfile} />
-                </div>
-              ))
             )}
-          </Tabs.Content>
+          </div>
+        )}
 
-          <Tabs.Content value="saved" className="space-y-6">
-            {savedPosts.length === 0 ? (
-              <div className="text-center py-20 card opacity-60">
-                <p className="text-sm text-text-muted">Nenhum post salvo ainda.</p>
-              </div>
+        {/* ── Tab: Posts / Reposts / Saved ── */}
+        {activeTab !== "media" && (
+          <div className="divide-y divide-bg-border/40">
+            {tabContent[activeTab]?.length === 0 ? (
+              <EmptyState
+                message={
+                  activeTab === "posts" ? "Você ainda não postou nada." :
+                  activeTab === "reposts" ? "Nenhuma republicação ainda." :
+                  "Nenhum post salvo ainda."
+                }
+                icon={activeTab === "reposts" ? RefreshCw : activeTab === "saved" ? Bookmark : Grid3X3}
+              />
             ) : (
-              savedPosts.map((thought: any) => (
-                <div key={thought.id} className="card p-4 lg:p-6 rounded-2xl border hover:border-brand/30 transition-all">
-                  <div className="mb-4">
-                    {thought.title && <h3 className="text-lg font-display text-text-primary mb-2">{thought.title}</h3>}
-                    <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{thought.content}</p>
-                  </div>
-                  <ThoughtActions thought={thought} onUpdate={fetchProfile} />
-                </div>
+              tabContent[activeTab]?.map((thought: any) => (
+                <ThoughtCard
+                  key={thought.id}
+                  thought={thought}
+                  isRepost={activeTab === "reposts"}
+                  onUpdate={fetchProfile}
+                />
               ))
             )}
-          </Tabs.Content>
-        </Tabs.Root>
+          </div>
+        )}
       </div>
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────
+// Sub-components
+// ──────────────────────────────────────────────
+
+function ThoughtCard({ thought, isRepost, onUpdate }: { thought: any; isRepost?: boolean; onUpdate: () => void }) {
+  const ago = thought.createdAt
+    ? formatDistanceToNow(new Date(thought.createdAt), { addSuffix: true, locale: ptBR })
+    : null
+
+  return (
+    <article className="px-0 py-4 hover:bg-white/[0.02] transition-colors">
+      {isRepost && (
+        <div className="flex items-center gap-2 text-[11px] text-text-muted mb-2 pl-1">
+          <RefreshCw size={11} />
+          <span>Você republicou</span>
+        </div>
+      )}
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-bg-overlay">
+          {thought.user?.image ? (
+            <Image src={thought.user.image} alt={thought.user.name || ""} width={40} height={40} className="object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-sm font-bold"
+              style={{ background: "linear-gradient(135deg, #7c6af7, #e040fb)", color: "#fff" }}>
+              {thought.user?.name?.[0]?.toUpperCase() || "?"}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="font-bold text-text-primary text-sm">{thought.user?.name}</span>
+            {ago && <span className="text-text-muted text-xs">· {ago}</span>}
+          </div>
+          {thought.title && (
+            <h3 className="font-bold text-text-primary mb-1 text-sm">{thought.title}</h3>
+          )}
+          <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap line-clamp-5">
+            {thought.content}
+          </p>
+          {thought.mediaUrl && (
+            <div className="mt-3 rounded-2xl overflow-hidden border border-bg-border max-h-[350px]">
+              {thought.mediaType === "video" || thought.mediaType === "short_video" ? (
+                <video src={thought.mediaUrl} controls className="w-full max-h-[350px] object-contain bg-black" />
+              ) : (
+                <img src={thought.mediaUrl} alt="" className="w-full max-h-[350px] object-contain" />
+              )}
+            </div>
+          )}
+          <div className="mt-3">
+            <ThoughtActions thought={thought} onUpdate={onUpdate} />
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function EmptyState({ message, icon: Icon }: { message: string; icon: any }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+      <div className="w-16 h-16 rounded-full bg-bg-surface flex items-center justify-center">
+        <Icon size={24} className="text-text-muted" />
+      </div>
+      <p className="text-text-muted text-sm max-w-[220px]">{message}</p>
     </div>
   )
 }

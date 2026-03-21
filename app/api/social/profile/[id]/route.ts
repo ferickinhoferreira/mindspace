@@ -16,6 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         image: true,
         banner: true,
         bio: true,
+        createdAt: true,
         _count: {
           select: { followers: true, following: true, thoughts: true },
         },
