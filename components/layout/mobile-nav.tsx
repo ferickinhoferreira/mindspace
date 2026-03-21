@@ -2,58 +2,68 @@
 // components/layout/mobile-nav.tsx
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { 
-  Home, 
-  Search, 
-  PlusSquare, 
-  Users, 
-  User as UserIcon,
-  Bell
-} from "lucide-react"
+import { Home, Search, PlusSquare, Bell, User as UserIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function MobileNav() {
   const pathname = usePathname()
 
   const items = [
-    { href: "/dashboard/feed", icon: Home, label: "Home" },
-    { href: "/dashboard/explore", icon: Search, label: "Explorar" },
-    { href: "/dashboard/create", icon: PlusSquare, label: "Criar", isSpecial: true },
-    { href: "/dashboard/friends", icon: Users, label: "Rede" },
-    { href: "/dashboard/profile", icon: UserIcon, label: "Perfil" },
+    { href: "/dashboard/feed",    icon: Home,       label: "Home" },
+    { href: "/dashboard/explore", icon: Search,     label: "Buscar" },
+    { href: "/dashboard/create",  icon: PlusSquare, label: "Criar",  isSpecial: true },
+    { href: "/dashboard/notifications", icon: Bell, label: "Notif." },
+    { href: "/dashboard/profile", icon: UserIcon,   label: "Perfil" },
   ]
 
   function isActive(href: string) {
-    return pathname === href
+    return pathname === href || pathname.startsWith(href + "/")
   }
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-bg-elevated/80 backdrop-blur-xl border-t border-bg-border z-50 px-4 pb-safe">
-      <div className="flex items-center justify-between h-16 max-w-md mx-auto">
-        {items.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 group relative flex-1 min-w-0 h-full",
-              isActive(item.href) ? "text-brand" : "text-text-muted hover:text-text-secondary"
-            )}
-          >
-            <div className={cn(
-               "p-2 rounded-xl transition-all duration-300",
-               isActive(item.href) && "bg-brand/10"
-            )}>
-              <item.icon 
-                size={22} 
-                strokeWidth={isActive(item.href) ? 2.5 : 2}
-                className={cn("transition-transform duration-300", isActive(item.href) && "scale-110")} 
-              />
-            </div>
-            {isActive(item.href) && (
-              <div className="absolute top-1 right-1/4 w-1.5 h-1.5 bg-brand rounded-full animate-pulse" />
-            )}
-          </Link>
-        ))}
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 border-t border-bg-border-subtle bg-black/95 backdrop-blur-2xl">
+      <div className="flex items-center justify-around h-16 safe-area-inset-bottom">
+        {items.map((item) => {
+          const active = isActive(item.href)
+
+          if (item.isSpecial) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-brand to-brand-alt shadow-lg shadow-brand/30 active:scale-95 transition-transform"
+              >
+                <item.icon size={22} className="text-white" strokeWidth={2} />
+              </Link>
+            )
+          }
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 flex-1 h-full relative transition-all duration-200",
+                active ? "text-white" : "text-text-muted"
+              )}
+            >
+              <div className={cn(
+                "p-1.5 rounded-xl transition-all duration-200",
+                active ? "bg-white/10" : "hover:bg-white/5"
+              )}>
+                <item.icon
+                  size={22}
+                  strokeWidth={active ? 2.5 : 2}
+                  className="transition-all duration-200"
+                />
+              </div>
+              {/* Active dot */}
+              {active && (
+                <div className="absolute bottom-2 w-1 h-1 bg-brand rounded-full" />
+              )}
+            </Link>
+          )
+        })}
       </div>
     </nav>
   )

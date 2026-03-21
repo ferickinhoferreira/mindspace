@@ -1,19 +1,21 @@
 "use client"
 // components/social/thought-actions.tsx
 import { useState } from "react"
-import { 
-  Heart, 
-  MessageSquare, 
-  Repeat2, 
-  Bookmark, 
-  Send, 
+import {
+  Heart,
+  MessageCircle,
+  Repeat2,
+  Share2,
+  Bookmark,
   MoreHorizontal,
   UserPlus,
   UserMinus,
   EyeOff,
   Flag,
   Info,
-  Star
+  Star,
+  Link2,
+  Trash2,
 } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
@@ -26,141 +28,258 @@ interface ThoughtActionsProps {
 export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState<string | null>(null)
-
-  const isLiked = thought.likes?.length > 0
-  const isRepublished = thought.republishes?.length > 0
-  const isSaved = thought.savedBy?.length > 0
+  const [liked, setLiked] = useState((thought.likes?.length ?? 0) > 0)
+  const [likeCount, setLikeCount] = useState(thought._count?.likes ?? 0)
+  const [republished, setRepublished] = useState((thought.republishes?.length ?? 0) > 0)
+  const [repostCount, setRepostCount] = useState(thought._count?.republishes ?? 0)
+  const [saved, setSaved] = useState((thought.savedBy?.length ?? 0) > 0)
   const isFollowing = (thought.user.followers || []).length > 0
 
-  async function handleAction(action: string, endpoint: string, body: any) {
-    setLoading(action)
+  async function handleLike() {
+    if (loading === "like") return
+    setLoading("like")
+
+    // Optimistic update
+    const wasLiked = liked
+    setLiked(!wasLiked)
+    setLikeCount(wasLiked ? likeCount - 1 : likeCount + 1)
+
     try {
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/social/like", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ thoughtId: thought.id }),
       })
-      if (res.ok) {
-        onUpdate()
+      if (!res.ok) {
+        setLiked(wasLiked)
+        setLikeCount(wasLiked ? likeCount : likeCount - 1)
       }
-    } catch (error) {
-      toast({ title: "Erro", description: "Ocorreu um erro ao processar a ação." })
+    } catch {
+      setLiked(wasLiked)
+      setLikeCount(wasLiked ? likeCount : likeCount - 1)
     } finally {
       setLoading(null)
     }
   }
 
+  async function handleRepost() {
+    if (loading === "repost") return
+    setLoading("repost")
+    const wasReposted = republished
+    setRepublished(!wasReposted)
+    setRepostCount(wasReposted ? repostCount - 1 : repostCount + 1)
+
+    try {
+      const res = await fetch("/api/social/republish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thoughtId: thought.id }),
+      })
+      if (!res.ok) {
+        setRepublished(wasReposted)
+        setRepostCount(wasReposted ? repostCount : repostCount - 1)
+      } else {
+        toast({
+          title: wasReposted ? "Republicação removida" : "Republicado!",
+          description: wasReposted ? "" : "A postagem foi adicionada ao seu perfil.",
+        })
+      }
+    } catch {
+      setRepublished(wasReposted)
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleSave() {
+    if (loading === "save") return
+    setLoading("save")
+    const wasSaved = saved
+    setSaved(!wasSaved)
+
+    try {
+      const res = await fetch("/api/social/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thoughtId: thought.id }),
+      })
+      if (!res.ok) {
+        setSaved(wasSaved)
+      } else {
+        toast({
+          title: wasSaved ? "Removido dos salvos" : "Salvo!",
+          description: wasSaved ? "" : "A postagem foi salva no seu perfil.",
+        })
+      }
+    } catch {
+      setSaved(wasSaved)
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleFollow() {
+    setLoading("follow")
+    try {
+      await fetch("/api/social/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ followingId: thought.user.id }),
+      })
+      onUpdate()
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  function handleShare() {
+    if (navigator.share) {
+      navigator.share({ url: window.location.href })
+    } else {
+      navigator.clipboard.writeText(window.location.href)
+      toast({ title: "Link copiado!", description: "O link foi copiado para a área de transferência." })
+    }
+  }
+
+  const commentCount = thought._count?.comments ?? 0
+
   return (
-    <div className="flex items-center justify-between pt-4 border-t border-bg-border/50">
-      <div className="flex items-center gap-5">
+    <div className="flex items-center justify-between pt-1 -mx-1">
+      {/* Left actions */}
+      <div className="flex items-center gap-1">
         {/* Like */}
-        <button 
-          onClick={() => handleAction("like", "/api/social/like", { thoughtId: thought.id })}
-          className={`flex items-center gap-1.5 text-xs transition-colors ${isLiked ? "text-red-400 font-medium" : "text-text-muted hover:text-red-400"}`}
+        <button
+          onClick={handleLike}
+          className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-full transition-all duration-200 ${
+            liked
+              ? "text-rose-500"
+              : "text-text-muted hover:text-rose-500 hover:bg-rose-500/10"
+          }`}
         >
-          <Heart size={18} fill={isLiked ? "currentColor" : "none"} strokeWidth={isLiked ? 2.5 : 2} />
-          <span>{thought._count.likes}</span>
+          <Heart
+            size={18}
+            strokeWidth={liked ? 0 : 2}
+            fill={liked ? "currentColor" : "none"}
+            className={liked ? "animate-like-pop" : "group-hover:scale-110 transition-transform"}
+          />
+          <span className={`text-xs tabular-nums font-medium ${liked ? "text-rose-500" : "text-text-muted"}`}>
+            {likeCount > 0 ? likeCount : ""}
+          </span>
         </button>
 
         {/* Comment */}
-        <button className="flex items-center gap-1.5 text-xs text-text-muted hover:text-brand transition-colors">
-          <MessageSquare size={18} />
-          <span>{thought._count.comments}</span>
+        <button className="group flex items-center gap-1.5 px-2 py-1.5 rounded-full text-text-muted hover:text-brand hover:bg-brand/10 transition-all duration-200">
+          <MessageCircle size={18} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
+          <span className="text-xs tabular-nums font-medium">
+            {commentCount > 0 ? commentCount : ""}
+          </span>
         </button>
 
-        {/* Republish */}
-        <button 
-          onClick={() => handleAction("republish", "/api/social/republish", { thoughtId: thought.id })}
-          className={`flex items-center gap-1.5 text-xs transition-colors ${isRepublished ? "text-green-400 font-medium" : "text-text-muted hover:text-green-400"}`}
+        {/* Repost */}
+        <button
+          onClick={handleRepost}
+          className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-full transition-all duration-200 ${
+            republished
+              ? "text-emerald-500"
+              : "text-text-muted hover:text-emerald-500 hover:bg-emerald-500/10"
+          }`}
         >
-          <Repeat2 size={18} strokeWidth={isRepublished ? 3 : 2} />
-          <span>{thought._count.republishes}</span>
+          <Repeat2
+            size={18}
+            strokeWidth={republished ? 2.5 : 2}
+            className="group-hover:scale-110 transition-transform"
+          />
+          <span className={`text-xs tabular-nums font-medium ${republished ? "text-emerald-500" : "text-text-muted"}`}>
+            {repostCount > 0 ? repostCount : ""}
+          </span>
         </button>
 
-        {/* Share (Airplane) */}
-        <button 
-          onClick={() => {
-            navigator.clipboard.writeText(`${window.location.origin}/dashboard/feed`)
-            toast({ title: "Link Copiado", description: "O link da postagem foi copiado!" })
-          }}
-          className="flex items-center gap-1.5 text-xs text-text-muted hover:text-brand transition-colors"
+        {/* Share */}
+        <button
+          onClick={handleShare}
+          className="group flex items-center gap-1.5 px-2 py-1.5 rounded-full text-text-muted hover:text-sky-400 hover:bg-sky-400/10 transition-all duration-200"
         >
-          <Send size={18} className="-rotate-12 translate-y-[-1px]" />
+          <Share2 size={16} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
         </button>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Save */}
-        <button 
-          onClick={() => handleAction("save", "/api/social/save", { thoughtId: thought.id })}
-          className={`transition-colors ${isSaved ? "text-brand" : "text-text-muted hover:text-brand"}`}
+      {/* Right: Bookmark + More */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={handleSave}
+          className={`px-2 py-1.5 rounded-full transition-all duration-200 ${
+            saved
+              ? "text-brand"
+              : "text-text-muted hover:text-brand hover:bg-brand/10"
+          }`}
         >
-          <Bookmark size={18} fill={isSaved ? "currentColor" : "none"} />
+          <Bookmark size={18} strokeWidth={saved ? 0 : 2} fill={saved ? "currentColor" : "none"} />
         </button>
 
-        {/* Options (3 dots) */}
+        {/* Options menu */}
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
-            <button className="text-text-muted hover:text-text-primary transition-colors p-1 rounded-full hover:bg-bg-base">
-              <MoreHorizontal size={20} />
+            <button className="p-1.5 rounded-full text-text-muted hover:text-text-primary hover:bg-bg-surface transition-all duration-200">
+              <MoreHorizontal size={18} />
             </button>
           </DropdownMenu.Trigger>
 
           <DropdownMenu.Portal>
-            <DropdownMenu.Content 
-              className="bg-bg-secondary border border-bg-border rounded-xl shadow-2xl p-1.5 z-[100] min-w-[200px] animate-in slide-in-from-top-2 fade-in duration-200"
-              sideOffset={5}
+            <DropdownMenu.Content
+              className="min-w-[220px] bg-bg-surface border border-bg-border rounded-2xl shadow-2xl shadow-black/60 py-2 z-[200] animate-scale-in"
+              sideOffset={8}
               align="end"
             >
-              <DropdownMenu.Item 
-                className="flex items-center gap-3 px-3 py-2 text-sm text-text-primary rounded-lg hover:bg-bg-base outline-none cursor-pointer"
-                onSelect={() => handleAction("save", "/api/social/save", { thoughtId: thought.id })}
-              >
-                <Bookmark size={16} />
-                {isSaved ? "Remover dos Salvos" : "Salvar"}
-              </DropdownMenu.Item>
+              <MenuItem icon={<Bookmark size={16} />} onClick={handleSave}>
+                {saved ? "Remover dos Salvos" : "Salvar publicação"}
+              </MenuItem>
+              <MenuItem icon={<Repeat2 size={16} />} onClick={handleRepost}>
+                {republished ? "Remover republicação" : "Republicar"}
+              </MenuItem>
+              <MenuItem icon={<Star size={16} />}>Adicionar aos Favoritos</MenuItem>
+              <MenuItem icon={<Link2 size={16} />} onClick={handleShare}>Copiar link</MenuItem>
 
-              <DropdownMenu.Item 
-                className="flex items-center gap-3 px-3 py-2 text-sm text-text-primary rounded-lg hover:bg-bg-base outline-none cursor-pointer"
-                onSelect={() => handleAction("republish", "/api/social/republish", { thoughtId: thought.id })}
-              >
-                <Repeat2 size={16} />
-                Republicar
-              </DropdownMenu.Item>
+              <DropdownMenu.Separator className="h-px bg-bg-border my-1.5 mx-2" />
 
-              <DropdownMenu.Item className="flex items-center gap-3 px-3 py-2 text-sm text-text-primary rounded-lg hover:bg-bg-base outline-none cursor-pointer">
-                <Star size={16} />
-                Adicionar aos Favoritos
-              </DropdownMenu.Item>
+              <MenuItem icon={isFollowing ? <UserMinus size={16} /> : <UserPlus size={16} />} onClick={handleFollow}>
+                {isFollowing ? `Deixar de seguir @${thought.user.name?.split(" ")[0]}` : `Seguir @${thought.user.name?.split(" ")[0]}`}
+              </MenuItem>
+              <MenuItem icon={<EyeOff size={16} />}>Ocultar esta postagem</MenuItem>
+              <MenuItem icon={<Info size={16} />}>Sobre esta conta</MenuItem>
 
-              <DropdownMenu.Separator className="h-px bg-bg-border my-1.5" />
+              <DropdownMenu.Separator className="h-px bg-bg-border my-1.5 mx-2" />
 
-              <DropdownMenu.Item 
-                className="flex items-center gap-3 px-3 py-2 text-sm text-text-primary rounded-lg hover:bg-bg-base outline-none cursor-pointer"
-                onSelect={() => handleAction("follow", "/api/social/follow", { followingId: thought.user.id })}
-              >
-                {isFollowing ? <UserMinus size={16} /> : <UserPlus size={16} />}
-                {isFollowing ? "Deixar de Seguir" : `Seguir ${thought.user.name}`}
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Item className="flex items-center gap-3 px-3 py-2 text-sm text-text-primary rounded-lg hover:bg-bg-base outline-none cursor-pointer">
-                <EyeOff size={16} />
-                Ocultar
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Item className="flex items-center gap-3 px-3 py-2 text-sm text-text-primary rounded-lg hover:bg-bg-base outline-none cursor-pointer">
-                <Info size={16} />
-                Sobre esta conta
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Item className="flex items-center gap-3 px-3 py-2 text-sm text-red-400 rounded-lg hover:bg-red-500/10 outline-none cursor-pointer">
-                <Flag size={16} />
-                Denunciar
-              </DropdownMenu.Item>
+              <MenuItem icon={<Flag size={16} />} danger>Denunciar</MenuItem>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
       </div>
     </div>
+  )
+}
+
+function MenuItem({
+  icon,
+  children,
+  onClick,
+  danger,
+}: {
+  icon: React.ReactNode
+  children: React.ReactNode
+  onClick?: () => void
+  danger?: boolean
+}) {
+  return (
+    <DropdownMenu.Item
+      onSelect={onClick}
+      className={`flex items-center gap-3 px-4 py-2.5 text-sm rounded-xl mx-1.5 cursor-pointer outline-none transition-colors ${
+        danger
+          ? "text-red-400 hover:bg-red-500/10"
+          : "text-text-primary hover:bg-bg-overlay"
+      }`}
+    >
+      <span className={danger ? "text-red-400" : "text-text-muted"}>{icon}</span>
+      {children}
+    </DropdownMenu.Item>
   )
 }

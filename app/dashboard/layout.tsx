@@ -14,9 +14,9 @@ export default async function DashboardLayout({
   if (!session) redirect("/login")
 
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-black flex flex-col lg:flex-row">
       <Sidebar user={session.user || {}} />
-      <main className="flex-1 lg:ml-64 min-h-screen relative pb-20 lg:pb-0">
+      <main className="flex-1 lg:ml-[72px] xl:ml-[280px] min-h-screen relative pb-20 lg:pb-0 transition-all duration-200">
         {children}
         <FABCreate />
       </main>
