@@ -115,7 +115,7 @@ model Category {
 model Thought {
   id          String      @id @default(cuid())
   title       String?
-  content     String
+  content     String?
   type        ThoughtType @default(NOTE)
   isPublic    Boolean     @default(true)
   isPinned    Boolean     @default(false)
