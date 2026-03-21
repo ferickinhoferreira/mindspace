@@ -32,7 +32,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         likes: { where: { userId: userId || "" } },
         republishes: { where: { userId: userId || "" } },
         savedBy: { where: { userId: userId || "" } },
-        _count: { select: { likes: true, comments: true, republishes: true } }
+        _count: { select: { likes: true, comments: true, republishes: true, savedBy: true } }
       },
       orderBy: { createdAt: "desc" },
     })
@@ -46,7 +46,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             likes: { where: { userId: userId || "" } },
             republishes: { where: { userId: userId || "" } },
             savedBy: { where: { userId: userId || "" } },
-            _count: { select: { likes: true, comments: true, republishes: true } }
+            _count: { select: { likes: true, comments: true, republishes: true, savedBy: true } }
           }
         }
       },

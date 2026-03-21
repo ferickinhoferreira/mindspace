@@ -35,7 +35,7 @@ export async function GET() {
       likes: { where: { userId: session.user.id } },
       republishes: { where: { userId: session.user.id } },
       savedBy: { where: { userId: session.user.id } },
-      _count: { select: { likes: true, comments: true, republishes: true } }
+      _count: { select: { likes: true, comments: true, republishes: true, savedBy: true } }
     },
     orderBy: { createdAt: "desc" }
   })
@@ -49,7 +49,7 @@ export async function GET() {
           likes: { where: { userId: session.user.id } },
           republishes: { where: { userId: session.user.id } },
           savedBy: { where: { userId: session.user.id } },
-          _count: { select: { likes: true, comments: true, republishes: true } }
+          _count: { select: { likes: true, comments: true, republishes: true, savedBy: true } }
         }
       }
     },
@@ -65,7 +65,7 @@ export async function GET() {
           likes: { where: { userId: session.user.id } },
           republishes: { where: { userId: session.user.id } },
           savedBy: { where: { userId: session.user.id } },
-          _count: { select: { likes: true, comments: true, republishes: true } }
+          _count: { select: { likes: true, comments: true, republishes: true, savedBy: true } }
         }
       }
     },

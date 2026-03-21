@@ -15,7 +15,7 @@ import {
 
 const TABS = [
   { id: "posts",   label: "Postagens",    icon: Grid3X3 },
-  { id: "reposts", label: "Republicados", icon: RefreshCw },
+  { id: "reposts", label: "Remix",        icon: RefreshCw },
   { id: "media",   label: "Mídia",        icon: ImageIcon },
 ]
 
@@ -319,7 +319,7 @@ function ThoughtCard({
       {isRepost && (
         <div className="flex items-center gap-2 text-[11px] text-text-muted mb-2 pl-1">
           <RefreshCw size={11} />
-          <span>{profileUser.name} republicou</span>
+          <span>{profileUser.name} remixou</span>
         </div>
       )}
       <div className="flex items-start gap-3">
