@@ -1,6 +1,7 @@
 "use client"
 import { useState, useRef } from "react"
 import { X, Camera, Loader2, Check } from "lucide-react"
+import { upload } from "@vercel/blob/client"
 import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -32,23 +33,21 @@ export function ProfileEditModal({ user, onClose, onUpdate }: ProfileEditModalPr
 
     setUploading(field)
     try {
-      const data = new FormData()
-      data.append("file", file)
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: data,
+      // @ts-ignore
+      const newBlob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload/blob",
       })
 
-      if (res.ok) {
-        const { url } = await res.json()
-        setFormData((prev) => ({ ...prev, [field]: url }))
-        toast({ title: `${field === "image" ? "Foto" : "Capa"} carregada com sucesso!` })
-      } else {
-        toast({ title: "Falha no upload", variant: "destructive" })
-      }
-    } catch (error) {
-      toast({ title: "Erro ao subir arquivo", variant: "destructive" })
+      setFormData((prev) => ({ ...prev, [field]: newBlob.url }))
+      toast({ title: `${field === "image" ? "Foto" : "Capa"} carregada com sucesso!` })
+    } catch (error: any) {
+      console.error("Profile upload error:", error)
+      toast({ 
+        title: "Erro ao subir arquivo", 
+        description: error.message || "Verifique sua conexão.",
+        variant: "destructive" 
+      })
     } finally {
       setUploading(null)
     }
