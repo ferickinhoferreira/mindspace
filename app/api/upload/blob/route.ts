@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           }),
         }
       },
-      onUploadCompleted: async ({ blob, tokenPayload }: { blob: any, tokenPayload?: string }) => {
+      onUploadCompleted: async ({ blob, tokenPayload }: { blob: any, tokenPayload?: string | null }) => {
         // This callback is called once the upload is completed on Vercel's side.
         console.log("Blob upload completed", blob, tokenPayload)
       },
