@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { title, content, type, mediaUrl, mediaType, isPinned, isFavorite, tagIds, isPublic } = body
 
-    if (!content) return NextResponse.json({ error: "Conteúdo obrigatório" }, { status: 400 })
+    if (!content && !mediaUrl) return NextResponse.json({ error: "Conteúdo ou mídia obrigatória" }, { status: 400 })
 
     const thought = await prisma.thought.create({
       data: {
