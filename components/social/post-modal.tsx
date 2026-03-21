@@ -154,6 +154,11 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
 
   async function uploadFile(file: File): Promise<string> {
     const startTime = Date.now()
+    console.log("🚀 [MindSpace Debug] Iniciando upload direto para Cliente-side Blob...", { 
+      fileName: file.name, 
+      size: file.size,
+      type: file.type 
+    })
     
     try {
       const newBlob = await upload(file.name, file, {
@@ -170,9 +175,10 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
         },
       })
       
+      console.log("✅ [MindSpace Debug] Upload concluído com sucesso!", newBlob.url)
       return newBlob.url
     } catch (err: any) {
-      console.error("Client upload error:", err)
+      console.error("❌ [MindSpace Debug] Erro no upload direto:", err)
       throw new Error(err.message || "Erro no upload direto. Verifique sua conexão.")
     }
   }
