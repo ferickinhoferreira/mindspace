@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 import { AudioRecorder } from "./audio-recorder"
 import { AudioPlayer } from "./audio-player"
+import { upload } from "@vercel/blob/client"
 
 interface PostModalProps {
   type: string
@@ -151,45 +152,29 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
     }
   }
 
-  function uploadFile(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const startTime = Date.now()
-
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100)
+  async function uploadFile(file: File): Promise<string> {
+    const startTime = Date.now()
+    
+    try {
+      const newBlob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload/blob",
+        onUploadProgress: (progressEvent) => {
+          const percent = progressEvent.percentage
           setUploadProgress(percent)
           
           const elapsed = Date.now() - startTime
-          const speed = e.loaded / elapsed // bytes per ms
-          const remaining = (e.total - e.loaded) / speed // ms
+          const speed = progressEvent.loaded / elapsed // bytes per ms
+          const remaining = (progressEvent.total - progressEvent.loaded) / speed // ms
           setTimeLeft(remaining / 1000)
-        }
+        },
       })
-
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          if (xhr.status === 200) {
-            const res = JSON.parse(xhr.responseText)
-            resolve(res.url)
-          } else {
-            try {
-              const res = JSON.parse(xhr.responseText)
-              reject(new Error(res.tip || res.error || "Upload failed"))
-            } catch {
-              reject(new Error("Upload failed"))
-            }
-          }
-        }
-      }
-
-      xhr.open("POST", "/api/upload", true)
-      xhr.send(formData)
-    })
+      
+      return newBlob.url
+    } catch (err: any) {
+      console.error("Client upload error:", err)
+      throw new Error(err.message || "Erro no upload direto. Verifique sua conexão.")
+    }
   }
 
   const charPercent = (charCount / MAX_CHARS) * 100
