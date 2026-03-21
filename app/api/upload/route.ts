@@ -2,7 +2,10 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import fs from "fs"
 import path from "path"
-import { writeFile } from "fs/promises"
+import { pipeline } from "stream"
+import { promisify } from "util"
+
+const pump = promisify(pipeline)
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -16,19 +19,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
     }
 
-    // Validation (Limit: 100MB for Video, 10MB for others - checked in frontend, but here too)
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
     const fileName = `${Date.now()}-${file.name.replace(/\s/g, "-")}`
     const relativePath = `/uploads/${fileName}`
     const absolutePath = path.join(process.cwd(), "public", "uploads", fileName)
 
-    await writeFile(absolutePath, buffer)
+    // Ensure directory exists
+    const dir = path.dirname(absolutePath)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
 
-    return NextResponse.json({ url: relativePath, size: buffer.length })
+    // Using streams to be more memory efficient/robust
+    const readableStream = file.stream()
+    const writableStream = fs.createWriteStream(absolutePath)
+    
+    // @ts-ignore
+    await pump(readableStream, writableStream)
+
+    return NextResponse.json({ 
+      url: relativePath, 
+      size: file.size,
+      message: "Upload successful"
+    })
   } catch (error) {
-    console.error("Upload error:", error)
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 })
+    console.error("Upload error detail:", error)
+    return NextResponse.json({ error: "Upload failed: " + (error as Error).message }, { status: 500 })
   }
 }

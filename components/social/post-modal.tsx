@@ -195,6 +195,13 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
         <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] animate-fade-in" />
         <Dialog.Content className="fixed bottom-0 sm:top-1/2 sm:bottom-auto left-1/2 -translate-x-1/2 sm:-translate-y-1/2 w-full sm:max-w-[560px] bg-bg-surface border border-bg-border sm:rounded-2xl shadow-2xl z-[101] overflow-hidden rounded-t-3xl animate-slide-up sm:animate-scale-in">
           
+          <Dialog.Title className="sr-only">
+            {editData ? "Editar Publicação" : cfg.title}
+          </Dialog.Title>
+          <Dialog.Description className="sr-only">
+            Crie ou edite sua publicação no MindSpace.
+          </Dialog.Description>
+
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-bg-border/50 bg-bg-surface/80 backdrop-blur-md">
             <button

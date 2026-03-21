@@ -37,28 +37,46 @@ export async function POST(req: Request) {
   try {
     const { targetUserId } = await req.json()
 
-    // check if conversation already exists
-    const existing = await prisma.conversation.findFirst({
-      where: {
-        AND: [
-          { participants: { some: { id: session.user.id } } },
-          { participants: { some: { id: targetUserId } } }
-        ]
-      }
-    })
+    // Self-chat logic: check if it's already there
+    // For self-chat, find a conversation where participant count is 1 AND that participant is the user
+    // OR if we allow the same user twice (Prisma connect might handle this)
+    
+    let existing;
+    if (targetUserId === session.user.id) {
+       // Search for self-conversation (participant count might be 1)
+       existing = await prisma.conversation.findFirst({
+         where: {
+           participants: { 
+             every: { id: session.user.id },
+           }
+         }
+       })
+    } else {
+      existing = await prisma.conversation.findFirst({
+        where: {
+          AND: [
+            { participants: { some: { id: session.user.id } } },
+            { participants: { some: { id: targetUserId } } }
+          ]
+        }
+      })
+    }
 
     if (existing) return NextResponse.json(existing)
 
     const conversation = await prisma.conversation.create({
       data: {
         participants: {
-          connect: [{ id: session.user.id }, { id: targetUserId }]
+          connect: targetUserId === session.user.id 
+            ? [{ id: session.user.id }] 
+            : [{ id: session.user.id }, { id: targetUserId }]
         }
       }
     })
 
     return NextResponse.json(conversation)
   } catch (error) {
+    console.error("Conversation creation error:", error)
     return NextResponse.json({ error: "Failed to create conversation" }, { status: 500 })
   }
 }

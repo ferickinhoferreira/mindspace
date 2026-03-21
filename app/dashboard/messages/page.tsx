@@ -85,8 +85,12 @@ export default function MessagesPage() {
     }
   }
 
-  const otherParticipant = (conv: any) => 
-    conv.participants.find((p: any) => p.id !== session?.user?.id)
+  const otherParticipant = (conv: any) => {
+    const other = conv.participants.find((p: any) => p.id !== session?.user?.id)
+    if (other) return other
+    // If self-chat, return the first participant (myself)
+    return conv.participants[0]
+  }
 
   return (
     <div className="flex h-[calc(100vh-64px)] bg-bg-base overflow-hidden">

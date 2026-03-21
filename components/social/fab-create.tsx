@@ -1,6 +1,6 @@
 "use client"
 // components/social/fab-create.tsx
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Plus,
   Image as ImageIcon,
@@ -11,72 +11,29 @@ import {
   Sparkles,
   X,
   Zap,
-  BookOpen,
 } from "lucide-react"
 import { PostModal } from "./post-modal"
 
 const ACTIONS = [
-  {
-    id: "POST",
-    icon: FileText,
-    label: "Publicação",
-    sub: "Texto, link ou citação",
-    from: "#7c6af7",
-    to: "#5b52d6",
-  },
-  {
-    id: "STORY",
-    icon: Zap,
-    label: "Story",
-    sub: "Desaparece em 24h",
-    from: "#f09433",
-    to: "#bc1888",
-  },
-  {
-    id: "PHOTO",
-    icon: ImageIcon,
-    label: "Foto",
-    sub: "Imagem do feed",
-    from: "#2196f3",
-    to: "#00bcd4",
-  },
-  {
-    id: "VIDEO",
-    icon: Video,
-    label: "Vídeo",
-    sub: "Vídeo completo",
-    from: "#e53935",
-    to: "#e91e63",
-  },
-  {
-    id: "SHORT_VIDEO",
-    icon: Play,
-    label: "Reels / Short",
-    sub: "Vídeo curto vertical",
-    from: "#e040fb",
-    to: "#7c6af7",
-  },
-  {
-    id: "THOUGHT",
-    icon: Lightbulb,
-    label: "Pensamento",
-    sub: "Ideia ou reflexão",
-    from: "#ff8f00",
-    to: "#f57c00",
-  },
-  {
-    id: "PROMPT",
-    icon: Sparkles,
-    label: "Prompt IA",
-    sub: "Para assistentes de IA",
-    from: "#8e24aa",
-    to: "#5e35b1",
-  },
+  { id: "POST", icon: FileText, label: "Publicação", sub: "Texto, link ou citação", from: "#7c6af7", to: "#5b52d6" },
+  { id: "STORY", icon: Zap, label: "Story", sub: "Desaparece em 24h", from: "#f09433", to: "#bc1888" },
+  { id: "PHOTO", icon: ImageIcon, label: "Foto", sub: "Imagem do feed", from: "#2196f3", to: "#00bcd4" },
+  { id: "VIDEO", icon: Video, label: "Vídeo", sub: "Vídeo completo", from: "#e53935", to: "#e91e63" },
+  { id: "SHORT_VIDEO", icon: Play, label: "Reels / Short", sub: "Vídeo curto vertical", from: "#e040fb", to: "#7c6af7" },
+  { id: "THOUGHT", icon: Lightbulb, label: "Pensamento", sub: "Ideia ou reflexão", from: "#ff8f00", to: "#f57c00" },
+  { id: "PROMPT", icon: Sparkles, label: "Prompt IA", sub: "Para assistentes de IA", from: "#8e24aa", to: "#5e35b1" },
 ]
 
 export function FABCreate() {
   const [isOpen, setIsOpen] = useState(false)
   const [modalType, setModalType] = useState<string | null>(null)
+
+  // Listen for custom event from MobileNav
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true)
+    window.addEventListener("open-create-sheet", handleOpen)
+    return () => window.removeEventListener("open-create-sheet", handleOpen)
+  }, [])
 
   function open(id: string) {
     setModalType(id)
@@ -85,98 +42,48 @@ export function FABCreate() {
 
   return (
     <>
-      {/* ── Only show FAB on desktop (mobile uses bottom nav + button) ── */}
+      {/* ── FAB - NOW CENTERED ── */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 z-50 hidden lg:flex w-14 h-14 rounded-full items-center justify-center text-white shadow-2xl shadow-brand/30 hover:scale-110 active:scale-95 transition-all duration-300"
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 hidden lg:flex w-16 h-16 rounded-full items-center justify-center text-white shadow-[0_0_30px_rgba(124,106,247,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 border-4 border-black"
         style={{ background: "linear-gradient(135deg, #7c6af7, #e040fb)" }}
         aria-label="Criar publicação"
       >
-        <Plus size={28} strokeWidth={2.5} />
+        <Plus size={32} strokeWidth={2.5} />
       </button>
 
       {/* ── Bottom-sheet overlay ── */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-[60] flex items-end justify-center"
-          onClick={() => setIsOpen(false)}
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-
-          {/* Sheet */}
-          <div
-            className="relative w-full max-w-lg bg-[#111111] rounded-t-3xl pb-safe shadow-2xl animate-slide-up"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-10 h-1.5 bg-[#333] rounded-full" />
+        <div className="fixed inset-0 z-[100] flex items-end justify-center" onClick={() => setIsOpen(false)}>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-fade-in" />
+          <div className="relative w-full max-w-lg bg-[#0a0a0a] rounded-t-[40px] border-t border-white/10 shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-center pt-4 pb-2"><div className="w-12 h-1.5 bg-white/10 rounded-full" /></div>
+            <div className="flex items-center justify-between px-6 pb-6 pt-2">
+              <h2 className="text-xl font-black text-white tracking-tight">O que vamos criar?</h2>
+              <button onClick={() => setIsOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors"><X size={20} /></button>
             </div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 pb-4 pt-1 border-b border-[#222]">
-              <h2 className="text-[17px] font-bold text-white">Criar novo</h2>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#222] hover:bg-[#2a2a2a] transition-colors text-[#aaa] hover:text-white active:scale-95"
-              >
-                <X size={18} strokeWidth={2.5} />
-              </button>
-            </div>
-
-            {/* Actions grid */}
-            <div className="grid grid-cols-2 gap-3 p-4">
+            <div className="grid grid-cols-2 gap-4 px-6 pb-12 overflow-y-auto max-h-[60vh] no-scrollbar">
               {ACTIONS.map((action) => (
                 <button
                   key={action.id}
                   onClick={() => open(action.id)}
-                  className="relative flex items-center gap-3.5 p-4 rounded-2xl bg-[#1a1a1a] hover:bg-[#222] border border-[#2a2a2a] hover:border-[#3a3a3a] active:scale-[0.97] transition-all duration-200 text-left group overflow-hidden"
+                  className="relative flex flex-col items-center gap-4 p-6 rounded-[32px] bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 active:scale-95 transition-all text-center group"
                 >
-                  {/* Subtle gradient accent */}
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-                    style={{
-                      background: `linear-gradient(135deg, ${action.from}12, ${action.to}08)`,
-                    }}
-                  />
-
-                  {/* Icon */}
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg relative z-10"
-                    style={{
-                      background: `linear-gradient(135deg, ${action.from}, ${action.to})`,
-                    }}
-                  >
-                    <action.icon size={20} strokeWidth={2} className="text-white" />
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl" style={{ background: `linear-gradient(135deg, ${action.from}, ${action.to})` }}>
+                    <action.icon size={24} strokeWidth={2.5} className="text-white" />
                   </div>
-
-                  {/* Label */}
-                  <div className="min-w-0 relative z-10">
-                    <p className="text-[14px] font-bold text-white leading-tight truncate">{action.label}</p>
-                    <p className="text-[11px] text-[#666] mt-0.5 leading-tight truncate">{action.sub}</p>
+                  <div>
+                    <p className="text-[15px] font-black text-white leading-tight">{action.label}</p>
+                    <p className="text-[11px] text-white/40 mt-1">{action.sub}</p>
                   </div>
                 </button>
               ))}
-            </div>
-
-            {/* Cancel */}
-            <div className="px-4 pb-6 pt-1">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-full py-3.5 rounded-2xl bg-[#1a1a1a] hover:bg-[#222] border border-[#2a2a2a] text-[#aaa] text-[15px] font-semibold transition-colors active:scale-[0.98]"
-              >
-                Cancelar
-              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Modal ── */}
-      {modalType && (
-        <PostModal type={modalType} onClose={() => setModalType(null)} />
-      )}
+      {modalType && <PostModal type={modalType} onClose={() => setModalType(null)} />}
     </>
   )
 }
