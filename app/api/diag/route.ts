@@ -13,11 +13,23 @@ export async function GET() {
       NEXT_RUNTIME: process.env.NEXT_RUNTIME || "nodejs",
     },
     database: "checking...",
+    counts: {
+      users: 0,
+      tokens: 0,
+    },
+    recentUsers: [] as any[],
   }
 
   try {
     await prisma.$queryRaw`SELECT 1`
     diag.database = "CONNECTED"
+    diag.counts.users = await prisma.user.count()
+    diag.counts.tokens = await prisma.verificationToken.count()
+    diag.recentUsers = await prisma.user.findMany({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      select: { email: true, name: true, emailVerified: true, createdAt: true }
+    })
   } catch (e: any) {
     diag.database = `ERROR: ${e.message}`
   }
