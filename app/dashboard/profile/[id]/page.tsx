@@ -129,15 +129,15 @@ export default function UserProfilePage() {
             {/* Stats */}
             <div className="flex items-center justify-center sm:justify-start gap-8 py-4 border-t border-b border-bg-border/50">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                <span className="text-sm font-bold text-text-primary">{user._count.thoughts}</span>
+                <span className="text-sm font-bold text-text-primary">{user?._count?.thoughts ?? 0}</span>
                 <span className="text-xs text-text-muted">Publicações</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                <span className="text-sm font-bold text-text-primary">{user._count.followers}</span>
+                <span className="text-sm font-bold text-text-primary">{user?._count?.followers ?? 0}</span>
                 <span className="text-xs text-text-muted">Seguidores</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                <span className="text-sm font-bold text-text-primary">{user._count.following}</span>
+                <span className="text-sm font-bold text-text-primary">{user?._count?.following ?? 0}</span>
                 <span className="text-xs text-text-muted">Seguindo</span>
               </div>
             </div>

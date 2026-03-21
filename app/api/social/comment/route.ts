@@ -7,10 +7,12 @@ export async function GET(req: Request) {
   const thoughtId = searchParams.get("thoughtId")
   const promptId = searchParams.get("promptId")
 
+  const where: any = {}
+  if (thoughtId) where.thoughtId = thoughtId
+  if (promptId) where.promptId = promptId
+
   const comments = await prisma.comment.findMany({
-    where: {
-      OR: [{ thoughtId }, { promptId }],
-    },
+    where,
     include: {
       user: { select: { name: true, image: true, id: true } },
     },

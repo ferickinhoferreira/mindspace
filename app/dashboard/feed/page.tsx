@@ -91,7 +91,9 @@ export default function FeedPage() {
                 )}
               </div>
             </div>
-            <span className="text-[10px] text-text-muted font-medium truncate w-16 text-center">{story.user.name.split(' ')[0]}</span>
+            <span className="text-[10px] text-text-muted font-medium truncate w-16 text-center">
+              {story.user.name ? story.user.name.split(' ')[0] : "Usuário"}
+            </span>
           </div>
         ))}
       </div>
@@ -133,7 +135,7 @@ export default function FeedPage() {
           </div>
         ) : (
           thoughts.map((thought) => {
-            const isFollowing = thought.user.followers?.length > 0
+            const isFollowing = (thought.user.followers || []).length > 0
             const isMe = thought.user.id === session?.user?.id
 
             return (

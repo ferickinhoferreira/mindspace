@@ -16,7 +16,7 @@ export async function GET(req: Request) {
       where: { followerId: userId },
       select: { followingId: true },
     })
-    const followingIds = following.map((f) => f.followingId)
+    const followingIds = following.map((f: { followingId: string }) => f.followingId)
 
     const thoughts = await prisma.thought.findMany({
       where: {
@@ -73,9 +73,18 @@ export async function GET(req: Request) {
      const thoughts = await prisma.thought.findMany({
       where: { isPublic: true },
       include: {
-        user: { select: { name: true, image: true, id: true } },
+        user: { 
+          select: { 
+            name: true, 
+            image: true, 
+            id: true,
+            followers: { where: { followerId: userId } }
+          } 
+        },
         likes: { where: { userId } },
-        _count: { select: { likes: true, comments: true } },
+        republishes: { where: { userId } },
+        savedBy: { where: { userId } },
+        _count: { select: { likes: true, comments: true, republishes: true } },
       },
       orderBy: {
         likes: { _count: "desc" },

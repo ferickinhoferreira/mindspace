@@ -30,7 +30,7 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
   const isLiked = thought.likes?.length > 0
   const isRepublished = thought.republishes?.length > 0
   const isSaved = thought.savedBy?.length > 0
-  const isFollowing = thought.user.followers?.length > 0
+  const isFollowing = (thought.user.followers || []).length > 0
 
   async function handleAction(action: string, endpoint: string, body: any) {
     setLoading(action)
