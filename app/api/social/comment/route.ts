@@ -24,7 +24,7 @@ export async function GET(req: Request) {
           user: { select: { name: true, image: true, id: true } },
         }
       }
-    },
+    } as any,
     orderBy: { createdAt: "desc" },
   })
 
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       parentCommentId: parentCommentId || null,
       mediaUrl: mediaUrl || null,
       mediaType: mediaType || null,
-    },
+    } as any,
     include: {
       user: { select: { name: true, image: true, id: true } },
     },
@@ -79,7 +79,7 @@ export async function PATCH(req: Request) {
 
   const updated = await prisma.comment.update({
     where: { id: commentId },
-    data: { likedByCreator: likedByCreator },
+    data: { likedByCreator: likedByCreator } as any,
   })
 
   return NextResponse.json({ comment: updated })

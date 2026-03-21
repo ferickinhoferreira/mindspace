@@ -13,6 +13,7 @@ import {
   MessageSquare, MoreHorizontal, Mic
 } from "lucide-react"
 import { AudioPlayer } from "@/components/social/audio-player"
+import { ProfileEditModal } from "@/components/social/profile-edit-modal"
 
 const TABS = [
   { id: "posts",   label: "Postagens",    icon: Grid3X3 },
@@ -29,6 +30,7 @@ export default function UserProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
+  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => { fetchProfile() }, [id])
 
@@ -92,7 +94,7 @@ export default function UserProfilePage() {
     ? format(new Date(user.createdAt), "MMMM 'de' yyyy", { locale: ptBR })
     : null
 
-  const username = `@${user.id.slice(0, 12)}`
+  const username = user.username ? `@${user.username}` : `@${user.id.slice(0, 12)}`
 
   return (
     <div className="min-h-screen bg-bg-base pb-24 animate-fade-in">
@@ -145,7 +147,14 @@ export default function UserProfilePage() {
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 pb-1">
-            {!isOwnProfile && (
+            {isOwnProfile ? (
+              <button 
+                onClick={() => setShowEditModal(true)}
+                className="px-5 py-2 rounded-full text-sm font-bold border border-bg-border text-text-primary hover:bg-bg-surface transition-all active:scale-95"
+              >
+                Editar Perfil
+              </button>
+            ) : (
               <>
                 {/* More options */}
                 <button className="w-9 h-9 flex items-center justify-center rounded-full border border-bg-border hover:bg-bg-surface transition-all">
@@ -301,6 +310,14 @@ export default function UserProfilePage() {
           </div>
         )}
       </div>
+
+      {showEditModal && (
+        <ProfileEditModal 
+          user={user} 
+          onClose={() => setShowEditModal(false)} 
+          onUpdate={fetchProfile} 
+        />
+      )}
     </div>
   )
 }

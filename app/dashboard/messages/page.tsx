@@ -1,79 +1,84 @@
 "use client"
-// app/dashboard/messages/page.tsx
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useSession } from "next-auth/react"
-import Image from "next/image"
 import { 
-  Search, 
-  Send, 
-  MoreVertical, 
-  Phone, 
-  Video, 
-  Info, 
-  Plus, 
-  Loader2, 
-  ArrowLeft,
-  Share2
+  Send, Search, MoreVertical, Phone, Video, 
+  Image as ImageIcon, Smile, Paperclip, ArrowLeft,
+  Mail, Loader2, User
 } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 export default function MessagesPage() {
   const { data: session } = useSession()
   const [conversations, setConversations] = useState<any[]>([])
-  const [activeConv, setActiveConv] = useState<any>(null)
+  const [selectedConv, setSelectedConv] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [msgInput, setMsgInput] = useState("")
+  const [newMessage, setNewMessage] = useState("")
+  const [loadingConv, setLoadingConv] = useState(true)
+  const [loadingMsg, setLoadingMsg] = useState(false)
   const [sending, setSending] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadConversations()
   }, [])
 
   useEffect(() => {
-    if (activeConv) loadMessages(activeConv.id)
-  }, [activeConv])
+    if (selectedConv) {
+      loadMessages(selectedConv.id)
+      // Polling for new messages
+      const interval = setInterval(() => loadMessages(selectedConv.id, true), 3000)
+      return () => clearInterval(interval)
+    }
+  }, [selectedConv])
 
   useEffect(() => {
-    scrollToBottom()
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
 
   async function loadConversations() {
     try {
-      const res = await fetch("/api/messages")
-      const data = await res.json()
-      setConversations(data.conversations || [])
+      const res = await fetch("/api/social/conversations")
+      if (res.ok) {
+        const data = await res.json()
+        setConversations(data)
+      }
     } finally {
-      setLoading(false)
+      setLoadingConv(false)
     }
   }
 
-  async function loadMessages(convId: string) {
-    const res = await fetch(`/api/messages/${convId}`)
-    const data = await res.json()
-    setMessages(data.messages || [])
+  async function loadMessages(convId: string, silent = false) {
+    if (!silent) setLoadingMsg(true)
+    try {
+      const res = await fetch(`/api/social/messages?conversationId=${convId}`)
+      if (res.ok) {
+        setMessages(await res.json())
+      }
+    } finally {
+      if (!silent) setLoadingMsg(false)
+    }
   }
 
   async function sendMessage() {
-    if (!msgInput.trim() || !activeConv || sending) return
+    if (!newMessage.trim() || sending || !selectedConv) return
     setSending(true)
     try {
-      const res = await fetch("/api/messages", {
+      const res = await fetch("/api/social/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: activeConv.id, content: msgInput.trim() })
+        body: JSON.stringify({
+          conversationId: selectedConv.id,
+          content: newMessage
+        })
       })
       if (res.ok) {
-        const data = await res.json()
-        setMessages(prev => [...prev, data.message])
-        setMsgInput("")
-        loadConversations() // update sidebar
+        setNewMessage("")
+        const msg = await res.json()
+        setMessages(prev => [...prev, msg])
       }
     } finally {
       setSending(false)
@@ -84,123 +89,154 @@ export default function MessagesPage() {
     conv.participants.find((p: any) => p.id !== session?.user?.id)
 
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-black overflow-hidden animate-fade-in shadow-2xl">
-      {/* ── Left Sidebar: Conversation List ── */}
-      <div className={`w-full md:w-[380px] border-r border-bg-border flex flex-col ${activeConv ? "hidden md:flex" : "flex"}`}>
-        <div className="p-4 border-b border-bg-border bg-black/50 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-text-primary">Mensagens</h1>
-            <button className="p-2 hover:bg-bg-overlay rounded-full text-brand transition-colors"><Plus size={20} /></button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
+    <div className="flex h-[calc(100vh-64px)] bg-bg-base overflow-hidden">
+      {/* Sidebar: Conv List */}
+      <div className={`w-full md:w-80 lg:w-96 border-r border-[#1e1e1e] flex flex-col ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
+        <div className="p-4 border-b border-[#1e1e1e] flex items-center justify-between">
+          <h1 className="text-xl font-black text-white tracking-tight">Mensagens</h1>
+          <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+            <Mail size={18} className="text-white" />
+          </button>
+        </div>
+
+        <div className="p-4">
+          <div className="flex items-center gap-2 bg-[#111] border border-[#2a2a2a] rounded-xl px-3 py-2">
+            <Search size={16} className="text-[#555]" />
             <input 
               type="text" 
-              placeholder="Buscar amigos..." 
-              className="w-full bg-bg-overlay border border-bg-border rounded-full py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-brand/40 transition-all"
+              placeholder="Buscar conversas..." 
+              className="bg-transparent text-sm text-white outline-none w-full"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar pb-20 md:pb-4">
-          {loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-brand" size={24} /></div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {loadingConv ? (
+            <div className="flex justify-center py-12"><Loader2 className="animate-spin text-[#7c6af7]" /></div>
           ) : conversations.length === 0 ? (
-            <div className="p-8 text-center text-text-muted">Nenhuma conversa ainda.</div>
+            <div className="text-center py-12 px-6">
+              <p className="text-[#555] text-sm italic">Nenhuma conversa ainda.</p>
+            </div>
           ) : (
             conversations.map(conv => {
-              const user = otherParticipant(conv)
-              const lastMsg = conv.messages?.[0]
+              const other = otherParticipant(conv)
+              const lastMsg = conv.messages[0]
               return (
-                <div 
+                <button
                   key={conv.id}
-                  onClick={() => setActiveConv(conv)}
-                  className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors border-l-2 ${activeConv?.id === conv.id ? "bg-brand/5 border-brand" : "border-transparent"}`}
+                  onClick={() => setSelectedConv(conv)}
+                  className={`w-full flex items-center gap-3 p-4 transition-colors relative border-b border-[#1e1e1e]/30 ${
+                    selectedConv?.id === conv.id ? 'bg-[#7c6af7]/10 border-l-4 border-l-[#7c6af7]' : 'hover:bg-white/[0.03]'
+                  }`}
                 >
-                  <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-bg-overlay border border-bg-border">
-                    {user?.image ? <img src={user.image} alt="" className="object-cover w-full h-full" /> : <div className="w-full h-full flex items-center justify-center font-bold text-brand bg-brand/10">{user?.name?.[0]}</div>}
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-[#111] shrink-0 border border-[#2a2a2a]">
+                    {other?.image ? (
+                      <Image src={other.image} alt="" width={48} height={48} className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#7c6af7] to-[#e040fb] flex items-center justify-center text-white font-bold">
+                        {other?.name?.[0]}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline mb-0.5">
-                      <span className="font-bold text-sm text-text-primary truncate">{user?.name}</span>
-                      <span className="text-[10px] text-text-muted">{lastMsg ? formatDistanceToNow(new Date(lastMsg.createdAt), { locale: ptBR }) : ""}</span>
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="flex justify-between items-start mb-0.5">
+                      <p className="font-bold text-white truncate text-[15px]">{other?.name}</p>
+                      {lastMsg && (
+                        <span className="text-[10px] text-[#555] ml-2">
+                          {formatDistanceToNow(new Date(lastMsg.createdAt), { addSuffix: false, locale: ptBR })}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-text-muted truncate">{lastMsg?.content || "Compartilhou uma publicação"}</p>
+                    <p className={`text-sm truncate ${selectedConv?.id === conv.id ? 'text-[#7c6af7]' : 'text-[#888]'}`}>
+                      {lastMsg?.content || "Inicie uma conversa..."}
+                    </p>
                   </div>
-                </div>
+                </button>
               )
             })
           )}
         </div>
       </div>
 
-      {/* ── Main Chat Area ── */}
-      <div className={`flex-1 flex flex-col bg-black overflow-hidden ${!activeConv ? "hidden md:flex" : "flex"}`}>
-        {activeConv ? (
+      {/* Main Chat Area */}
+      <div className={`flex-1 flex flex-col bg-bg-base relative ${!selectedConv ? 'hidden md:flex' : 'flex'}`}>
+        {selectedConv ? (
           <>
-            {/* Header */}
-            <div className="px-4 py-3 border-b border-bg-border bg-black/50 backdrop-blur-xl flex items-center justify-between">
+            {/* Chat Header */}
+            <div className="p-4 border-b border-[#1e1e1e] bg-black/50 backdrop-blur-md flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <button onClick={() => setActiveConv(null)} className="md:hidden p-1.5 hover:bg-bg-overlay rounded-full"><ArrowLeft size={20} /></button>
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-bg-overlay border border-bg-border">
-                  {otherParticipant(activeConv)?.image ? <img src={otherParticipant(activeConv).image} alt="" className="object-cover w-full h-full" /> : <div className="w-full h-full flex items-center justify-center font-bold text-brand">{otherParticipant(activeConv)?.name?.[0]}</div>}
+                <button onClick={() => setSelectedConv(null)} className="md:hidden w-8 h-8 flex items-center justify-center hover:bg-white/5 rounded-full">
+                  <ArrowLeft size={20} className="text-white" />
+                </button>
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-[#2a2a2a]">
+                  {otherParticipant(selectedConv)?.image ? (
+                    <Image src={otherParticipant(selectedConv).image} alt="" width={40} height={40} className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#111] flex items-center justify-center text-white font-bold">
+                      {otherParticipant(selectedConv)?.name?.[0]}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <h2 className="font-bold text-sm text-text-primary">{otherParticipant(activeConv)?.name}</h2>
-                  <p className="text-[10px] text-brand font-bold animate-pulse">Online agora</p>
+                  <h2 className="text-[15px] font-black text-white">{otherParticipant(selectedConv)?.name}</h2>
+                  <p className="text-[10px] text-green-500 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Online agora
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-brand">
-                <button className="hover:scale-110 transition-transform"><Phone size={18} /></button>
-                <button className="hover:scale-110 transition-transform"><Video size={20} /></button>
-                <button className="hover:scale-110 transition-transform"><Info size={20} /></button>
+              <div className="flex items-center gap-1">
+                <button className="p-2 text-[#555] hover:text-[#7c6af7] transition-colors"><Phone size={18} /></button>
+                <button className="p-2 text-[#555] hover:text-[#7c6af7] transition-colors"><Video size={18} /></button>
+                <button className="p-2 text-[#555] hover:text-white transition-colors"><MoreVertical size={18} /></button>
               </div>
             </div>
 
-            {/* Messages body */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar bg-chat-pattern">
-              {messages.map((m: any) => {
-                const isMine = m.senderId === session?.user?.id
-                return (
-                  <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"} animate-slide-up`}>
-                    <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm ${isMine ? "bg-brand text-white rounded-br-none" : "bg-bg-surface border border-bg-border text-text-primary rounded-bl-none"}`}>
-                      {m.sharedThought && (
-                        <div className="mb-2 p-2 bg-black/20 rounded-xl border border-white/5 overflow-hidden">
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="w-4 h-4 rounded-full bg-brand overflow-hidden">
-                               {m.sharedThought.user.image && <img src={m.sharedThought.user.image} className="object-cover" />}
-                            </div>
-                            <span className="text-[10px] font-bold">@{m.sharedThought.user.name?.split(" ")[0]}</span>
-                          </div>
-                          <p className="text-[11px] line-clamp-2 opacity-80">{m.sharedThought.content}</p>
-                          {m.sharedThought.mediaUrl && <div className="mt-1 rounded-lg overflow-hidden h-20"><img src={m.sharedThought.mediaUrl} className="w-full h-full object-cover" /></div>}
-                        </div>
-                      )}
-                      <p className="text-sm leading-relaxed">{m.content}</p>
-                      <span className="text-[9px] opacity-40 mt-1 block text-right">{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            {/* Messages List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-[radial-gradient(circle_at_center,_#000000_0%,_transparent_100%)]">
+              {loadingMsg ? (
+                <div className="flex justify-center py-8"><Loader2 className="animate-spin text-[#7c6af7]" /></div>
+              ) : (
+                messages.map((m, idx) => {
+                  const isMine = m.senderId === session?.user?.id
+                  return (
+                    <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} animate-slide-up`}>
+                      <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed shadow-lg ${
+                        isMine 
+                          ? 'bg-[#7c6af7] text-white rounded-br-none' 
+                          : 'bg-[#111] text-[#ccc] border border-[#2a2a2a] rounded-bl-none'
+                      }`}>
+                        {m.content}
+                        <p className={`text-[10px] mt-1 text-right opacity-50`}>
+                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-              <div ref={messagesEndRef} />
+                  )
+                })
+              )}
+              <div ref={scrollRef} />
             </div>
 
-            {/* Input area */}
-            <div className="p-4 bg-black border-t border-bg-border">
-              <div className="flex items-center gap-3 bg-bg-surface border border-bg-border rounded-2xl px-4 py-2.5 focus-within:border-brand transition-all">
-                <button className="text-text-muted hover:text-brand transition-colors"><Plus size={20} /></button>
-                <input 
-                  type="text" 
-                  value={msgInput}
-                  onChange={e => setMsgInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter") sendMessage() }}
-                  placeholder="Escreva uma mensagem..." 
-                  className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
-                />
+            {/* Message Input */}
+            <div className="p-4 border-t border-[#1e1e1e] bg-black">
+              <div className="flex items-center gap-3 max-w-4xl mx-auto">
+                <button className="p-2 text-[#555] hover:text-[#7c6af7] transition-colors hidden sm:block"><ImageIcon size={20} /></button>
+                <button className="p-2 text-[#555] hover:text-[#7c6af7] transition-colors hidden sm:block"><Paperclip size={20} /></button>
+                <div className="flex-1 flex items-center bg-[#111] border border-[#2a2a2a] rounded-2xl px-4 py-2 group focus-within:border-[#7c6af7] transition-all">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="Escreva uma mensagem..."
+                    className="flex-1 bg-transparent text-sm text-white outline-none py-1"
+                  />
+                  <button className="p-1 text-[#555] hover:text-yellow-500 transition-colors"><Smile size={20} /></button>
+                </div>
                 <button 
                   onClick={sendMessage}
-                  disabled={!msgInput.trim() || sending}
-                  className="w-10 h-10 bg-brand text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-40"
+                  disabled={!newMessage.trim() || sending}
+                  className="w-10 h-10 flex items-center justify-center bg-[#7c6af7] text-white rounded-2xl hover:bg-[#6b58e6] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale shadow-[0_0_15px_rgba(124,106,247,0.3)]"
                 >
                   {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                 </button>
@@ -208,13 +244,15 @@ export default function MessagesPage() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 opacity-40">
-            <div className="w-20 h-20 rounded-3xl bg-bg-surface flex items-center justify-center text-4xl shadow-inner">💬</div>
-            <div>
-              <h2 className="text-lg font-bold text-text-primary italic">MindSpace Direct</h2>
-              <p className="text-sm text-text-muted mt-1 max-w-[280px]">Envie mensagens, compartilhe ideias e remix com seus amigos em tempo real.</p>
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[radial-gradient(circle_at_center,_#111_0%,_transparent_100%)]">
+            <div className="w-20 h-20 rounded-3xl bg-[#111] border border-[#2a2a2a] flex items-center justify-center text-3xl mb-4 shadow-xl">
+              ✉️
             </div>
-            <button className="bg-brand text-white text-xs font-bold px-6 py-2.5 rounded-full mt-2">Iniciar nova conversa</button>
+            <h3 className="text-xl font-black text-white mb-2">Selecione uma conversa</h3>
+            <p className="text-[#555] text-sm max-w-xs">Escolha um amigo da lista ao lado para começar a conversar ou inicie uma nova através do perfil.</p>
+            <Link href="/dashboard/explore" className="mt-6 px-6 py-2.5 bg-white text-black font-bold rounded-full hover:bg-[#eee] transition-all active:scale-95">
+              Encontrar pessoas
+            </Link>
           </div>
         )}
       </div>

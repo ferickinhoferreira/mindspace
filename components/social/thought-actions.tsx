@@ -112,18 +112,7 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
         }),
       })
       if (res.ok) {
-        const data = await res.json()
-        if (replyTo) {
-          // Add to nested replies locally
-          setComments(prev => prev.map(c => {
-            if (c.id === replyTo.id) {
-              return { ...c, replies: [...(c.replies || []), data.comment] }
-            }
-            return c
-          }))
-        } else {
-          setComments(prev => [data.comment, ...prev])
-        }
+        loadComments()
         setCommentText("")
         setReplyTo(null)
         setCommentAudioUrl(null)
@@ -303,32 +292,16 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
           {commentsLoading ? (
             <div className="flex justify-center py-6"><Loader2 size={20} className="animate-spin text-brand" /></div>
           ) : (
-            <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar pb-2">
+            <div className="space-y-6 max-h-[500px] overflow-y-auto no-scrollbar pb-2 pt-2">
               {comments.filter(c => !c.parentCommentId).map((c: any) => (
-                <div key={c.id} className="group/comment">
-                  <CommentItem 
-                    comment={c} 
-                    isOwner={isOwner} 
-                    onReply={() => { setReplyTo(c); inputRef.current?.focus(); }}
-                    onHeart={() => toggleCreatorHeart(c.id, c.likedByCreator)}
-                    authorId={thought.userId}
-                  />
-                  {/* Render replies */}
-                  {c.replies?.length > 0 && (
-                    <div className="ml-10 mt-1 space-y-3 border-l-2 border-bg-border/30 pl-4 py-1">
-                      {c.replies.map((r: any) => (
-                        <CommentItem 
-                          key={r.id} 
-                          comment={r} 
-                          isReply 
-                          isOwner={isOwner}
-                          onHeart={() => toggleCreatorHeart(r.id, r.likedByCreator)}
-                          authorId={thought.userId}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <CommentItem 
+                  key={c.id} 
+                  comment={c} 
+                  isOwner={isOwner} 
+                  onReply={setReplyTo}
+                  onHeart={toggleCreatorHeart}
+                  authorId={thought.userId}
+                />
               ))}
             </div>
           )}
@@ -396,44 +369,86 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
   )
 }
 
-function CommentItem({ comment, isReply, isOwner, onReply, onHeart, authorId }: any) {
+function CommentItem({ comment, isOwner, onReply, onHeart, authorId }: any) {
   const ago = comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: ptBR }) : ""
   const isPostAuthor = comment.userId === authorId
 
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-start gap-2.5">
-        <div className={`rounded-full overflow-hidden flex-shrink-0 bg-bg-overlay ${isReply ? "w-6 h-6" : "w-8 h-8"}`}>
-          {comment.user?.image ? <Image src={comment.user.image} alt="" width={32} height={32} className="object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-white bg-brand">{comment.user?.name?.[0]}</div>}
+        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-bg-overlay">
+          {comment.user?.image ? (
+            <Image src={comment.user.image} alt="" width={32} height={32} className="object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-white bg-brand">
+              {comment.user?.name?.[0]}
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-sm text-text-primary hover:underline cursor-pointer">{comment.user?.name}</span>
-            {isPostAuthor && <span className="bg-brand/10 text-brand text-[9px] px-1.5 py-0.5 rounded-full font-bold border border-brand/20 uppercase tracking-wider">Autor</span>}
+            <span className="font-bold text-sm text-text-primary hover:underline cursor-pointer">
+              {comment.user?.name}
+            </span>
+            {isPostAuthor && (
+              <span className="bg-brand/10 text-brand text-[9px] px-1.5 py-0.5 rounded-full font-bold border border-brand/20 uppercase tracking-wider">
+                Autor
+              </span>
+            )}
             <span className="text-text-muted text-[11px]">{ago}</span>
           </div>
-          {comment.content && <p className="text-[14px] text-text-secondary leading-normal mt-0.5">{comment.content}</p>}
+          
+          {comment.content && (
+            <p className="text-[14px] text-text-secondary leading-normal mt-0.5">
+              {comment.content}
+            </p>
+          )}
+          
           {comment.mediaUrl && comment.mediaType === "audio" && (
             <AudioPlayer src={comment.mediaUrl} className="mt-2 scale-90 origin-left border-none bg-bg-overlay/50" />
           )}
           
           <div className="flex items-center gap-4 mt-1.5 opacity-60 hover:opacity-100 transition-opacity">
-            {!isReply && onReply && (
-              <button onClick={onReply} className="text-[11px] font-bold text-text-muted hover:text-brand flex items-center gap-1">
-                <Reply size={12} /> Responder
-              </button>
-            )}
+            <button 
+              onClick={() => onReply(comment)} 
+              className="text-[11px] font-bold text-text-muted hover:text-brand flex items-center gap-1"
+            >
+              <Reply size={12} /> Responder
+            </button>
+
             {comment.likedByCreator && (
               <div className="flex items-center gap-1.5 text-[11px] font-bold text-rose-500 bg-rose-500/5 px-2 py-0.5 rounded-full border border-rose-500/10">
                 <Heart size={10} fill="currentColor" /> Curtido pelo criador
               </div>
             )}
+            
             {isOwner && (
-              <button onClick={onHeart} className={`text-[11px] font-bold transition-colors flex items-center gap-1 ${comment.likedByCreator ? "text-rose-500" : "text-text-muted hover:text-rose-400"}`}>
+              <button 
+                onClick={() => onHeart(comment.id, comment.likedByCreator)} 
+                className={`text-[11px] font-bold transition-colors flex items-center gap-1 ${
+                  comment.likedByCreator ? "text-rose-500" : "text-text-muted hover:text-rose-400"
+                }`}
+              >
                 <SmilePlus size={12} /> {comment.likedByCreator ? "Remover Coração" : "Coração do Criador"}
               </button>
             )}
           </div>
+
+          {/* RECURSIVE REPLIES */}
+          {comment.replies && comment.replies.length > 0 && (
+            <div className="mt-3 space-y-4 border-l-2 border-bg-border/20 pl-4 py-1">
+              {comment.replies.map((reply: any) => (
+                <CommentItem 
+                  key={reply.id}
+                  comment={reply}
+                  isOwner={isOwner}
+                  onReply={onReply}
+                  onHeart={onHeart}
+                  authorId={authorId}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

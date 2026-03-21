@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils"
 const NAV = [
   { href: "/dashboard/feed",       label: "Início",        icon: Home,      exact: false },
   { href: "/dashboard/explore",    label: "Explorar",      icon: Search,    exact: false },
+  { href: "/dashboard/messages",   label: "Mensagens",     icon: Mail,      exact: false },
   { href: "/dashboard/thoughts",   label: "Pensamentos",   icon: Brain,     exact: false },
   { href: "/dashboard/prompts",    label: "Prompts IA",    icon: Zap,       exact: false },
   { href: "/dashboard/bookmarks",  label: "Salvos",        icon: Bookmark,  exact: false },

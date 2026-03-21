@@ -28,7 +28,7 @@ export async function PATCH(
       content,
       isPublic,
       isArchived: !!isArchived
-    }
+    } as any
   })
 
   return NextResponse.json({ thought: updated })
