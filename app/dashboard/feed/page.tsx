@@ -42,25 +42,26 @@ export default function FeedPage() {
       <div className="p-4 lg:p-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
           <h1 className="font-display text-xl lg:text-2xl text-text-primary">Feed Social</h1>
-        <div className="flex bg-bg-overlay p-1 rounded-xl border border-bg-border">
-          <button 
-            onClick={() => setTab("personal")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "personal" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
-          >
-            Seguindo
-          </button>
-          <button 
-            onClick={() => setTab("explore")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "explore" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
-          >
-            Explorar
-          </button>
-          <button 
-            onClick={() => setTab("trending")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "trending" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
-          >
-            Em Alta
-          </button>
+          <div className="flex bg-bg-overlay p-1 rounded-xl border border-bg-border self-start sm:self-auto">
+            <button 
+              onClick={() => setTab("personal")}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "personal" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
+            >
+              Seguindo
+            </button>
+            <button 
+              onClick={() => setTab("explore")}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "explore" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
+            >
+              Explorar
+            </button>
+            <button 
+              onClick={() => setTab("trending")}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === "trending" ? "bg-brand text-white shadow-lg" : "text-text-muted hover:text-text-primary"}`}
+            >
+              Em Alta
+            </button>
+          </div>
         </div>
       </div>
 
