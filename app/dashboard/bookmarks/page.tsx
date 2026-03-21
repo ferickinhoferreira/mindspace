@@ -7,6 +7,7 @@ import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { ThoughtActions } from "@/components/social/thought-actions"
+import { AudioPlayer } from "@/components/social/audio-player"
 
 export default function BookmarksPage() {
   const { data: session } = useSession()
@@ -94,8 +95,18 @@ export default function BookmarksPage() {
                   {thought.content}
                 </p>
                 {thought.mediaUrl && (
-                  <div className="mt-3 rounded-2xl overflow-hidden border border-[#1e1e1e]">
-                    <img src={thought.mediaUrl} alt="" className="w-full h-auto max-h-[400px] object-cover" />
+                  <div className="mt-3">
+                    {thought.mediaType === "audio" ? (
+                      <AudioPlayer src={thought.mediaUrl} className="bg-bg-surface border-[#1e1e1e]" />
+                    ) : thought.mediaType === "video" || thought.mediaType === "short_video" ? (
+                      <div className="rounded-2xl overflow-hidden border border-[#1e1e1e]">
+                        <video src={thought.mediaUrl} controls className="w-full aspect-video object-cover" />
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl overflow-hidden border border-[#1e1e1e] bg-bg-surface">
+                        <img src={thought.mediaUrl} alt="" className="w-full h-auto max-h-[400px] object-cover" />
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="mt-3">

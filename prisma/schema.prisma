@@ -220,6 +220,8 @@ model Comment {
   promptId        String?
   parentCommentId String?
   likedByCreator  Boolean  @default(false)
+  mediaUrl        String?
+  mediaType       String?  // "audio", "image"
   createdAt       DateTime @default(now())
 
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)

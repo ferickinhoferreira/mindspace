@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { content, thoughtId, promptId, parentCommentId } = await req.json()
+  const { content, thoughtId, promptId, parentCommentId, mediaUrl, mediaType } = await req.json()
 
   const comment = await prisma.comment.create({
     data: {
@@ -44,6 +44,8 @@ export async function POST(req: Request) {
       thoughtId: thoughtId || null,
       promptId: promptId || null,
       parentCommentId: parentCommentId || null,
+      mediaUrl: mediaUrl || null,
+      mediaType: mediaType || null,
     },
     include: {
       user: { select: { name: true, image: true, id: true } },

@@ -27,7 +27,7 @@ export async function PATCH(
       title,
       content,
       isPublic,
-      isArchived
+      isArchived: !!isArchived
     }
   })
 

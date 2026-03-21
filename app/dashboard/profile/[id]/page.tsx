@@ -10,8 +10,9 @@ import { ThoughtActions } from "@/components/social/thought-actions"
 import {
   Loader2, UserPlus, UserCheck, Grid3X3, RefreshCw,
   Calendar, Heart, Play, Image as ImageIcon, ArrowLeft,
-  MessageSquare, MoreHorizontal
+  MessageSquare, MoreHorizontal, Mic
 } from "lucide-react"
+import { AudioPlayer } from "@/components/social/audio-player"
 
 const TABS = [
   { id: "posts",   label: "Postagens",    icon: Grid3X3 },
@@ -257,6 +258,11 @@ export default function UserProfilePage() {
                           <Play size={24} className="text-white drop-shadow-lg" />
                         </div>
                       </>
+                    ) : t.mediaType === "audio" ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-brand/5 gap-2 p-2">
+                        <Mic size={32} className="text-brand/40" />
+                        <span className="text-[10px] font-bold text-brand/60 uppercase">Áudio</span>
+                      </div>
                     ) : (
                       <img src={t.mediaUrl} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                     )}
@@ -348,11 +354,17 @@ function ThoughtCard({
             {thought.content}
           </p>
           {thought.mediaUrl && (
-            <div className="mt-3 rounded-2xl overflow-hidden border border-bg-border max-h-[350px]">
-              {thought.mediaType === "video" || thought.mediaType === "short_video" ? (
-                <video src={thought.mediaUrl} controls className="w-full max-h-[350px] object-contain bg-black" />
+            <div className="mt-3">
+              {thought.mediaType === "audio" ? (
+                <AudioPlayer src={thought.mediaUrl} className="bg-bg-surface border-bg-border" />
+              ) : thought.mediaType === "video" || thought.mediaType === "short_video" ? (
+                <div className="rounded-2xl overflow-hidden border border-bg-border max-h-[350px]">
+                  <video src={thought.mediaUrl} controls className="w-full max-h-[350px] object-contain bg-black" />
+                </div>
               ) : (
-                <img src={thought.mediaUrl} alt="" className="w-full max-h-[350px] object-contain" />
+                <div className="rounded-2xl overflow-hidden border border-bg-border max-h-[350px]">
+                  <img src={thought.mediaUrl} alt="" className="w-full max-h-[350px] object-contain" />
+                </div>
               )}
             </div>
           )}

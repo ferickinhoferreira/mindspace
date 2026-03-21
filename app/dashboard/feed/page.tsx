@@ -7,6 +7,7 @@ import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { ThoughtActions } from "@/components/social/thought-actions"
+import { AudioPlayer } from "@/components/social/audio-player"
 
 const TABS = [
   { id: "personal", label: "Para você", icon: Home },
@@ -245,17 +246,20 @@ export default function FeedPage() {
                         {thought.content}
                       </p>
 
-                      {/* Media */}
                       {thought.mediaUrl && (
-                        <div className="mt-3 rounded-2xl overflow-hidden border border-bg-border-subtle">
-                          {thought.mediaType === "video" || thought.mediaType === "short_video" ? (
-                            <video
-                              src={thought.mediaUrl}
-                              controls
-                              className="w-full aspect-video object-cover"
-                            />
+                        <div className="mt-3">
+                          {thought.mediaType === "audio" ? (
+                            <AudioPlayer src={thought.mediaUrl} className="bg-bg-surface border-bg-border-subtle" />
+                          ) : thought.mediaType === "video" || thought.mediaType === "short_video" ? (
+                            <div className="rounded-2xl overflow-hidden border border-bg-border-subtle">
+                              <video
+                                src={thought.mediaUrl}
+                                controls
+                                className="w-full aspect-video object-cover"
+                              />
+                            </div>
                           ) : (
-                            <div className="w-full bg-bg-surface">
+                            <div className="rounded-2xl overflow-hidden border border-bg-border-subtle bg-bg-surface">
                               <img
                                 src={thought.mediaUrl}
                                 alt="Mídia"

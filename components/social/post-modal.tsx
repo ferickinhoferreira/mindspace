@@ -21,7 +21,10 @@ import {
   AlertCircle,
   FileUp,
   Clock,
+  Mic,
 } from "lucide-react"
+import { AudioRecorder } from "./audio-recorder"
+import { AudioPlayer } from "./audio-player"
 
 interface PostModalProps {
   type: string
@@ -51,6 +54,8 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
   const [uploadSpeed, setUploadSpeed] = useState(0) // bytes per ms
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showRecorder, setShowRecorder] = useState(false)
+  const [mediaType, setMediaType] = useState<string>("image")
   
   const [charCount, setCharCount] = useState(content.length)
   const MAX_CHARS = 280
@@ -80,6 +85,22 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
 
     setError(null)
     setMediaFile(file)
+    setMediaType(file.type.startsWith("video/") ? "video" : "image")
+  }
+
+  async function handleAudioComplete(blob: Blob, duration: number) {
+    setShowRecorder(false)
+    setLoading(true)
+    try {
+      const audioFile = new File([blob], "voice-message.webm", { type: "audio/webm" })
+      const url = await uploadFile(audioFile)
+      setMediaPreview(url)
+      setMediaType("audio")
+    } catch (err) {
+      setError("Erro ao processar áudio.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleSubmit() {
@@ -110,7 +131,7 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
           content,
           type,
           mediaUrl: finalMediaUrl || undefined,
-          mediaType: type.toLowerCase().includes("video") ? "video" : "image",
+          mediaType: mediaType,
           isPublic,
         }),
       })
@@ -234,8 +255,10 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
                 <div className="mt-3">
                   {mediaPreview ? (
                     <div className="relative rounded-2xl overflow-hidden border border-bg-border group">
-                      {type === "VIDEO" || type === "SHORT_VIDEO" ? (
+                      {mediaType === "video" ? (
                         <video src={mediaPreview} className="w-full aspect-video object-cover" />
+                      ) : mediaType === "audio" ? (
+                        <AudioPlayer src={mediaPreview} className="bg-bg-overlay/50 border-none" />
                       ) : (
                         <img src={mediaPreview} alt="Preview" className="w-full h-auto max-h-[300px] object-cover" />
                       )}
@@ -268,6 +291,15 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
                     accept={type === "PHOTO" ? "image/*" : type.includes("VIDEO") ? "video/*" : "image/*,video/*"}
                     onChange={handleFileChange}
                     className="hidden"
+                  />
+                </div>
+              )}
+
+              {showRecorder && (
+                <div className="mt-4">
+                  <AudioRecorder 
+                    onRecordingComplete={handleAudioComplete}
+                    onCancel={() => setShowRecorder(false)}
                   />
                 </div>
               )}
@@ -322,6 +354,12 @@ export function PostModal({ type, onClose, editData }: PostModalProps) {
                 </button>
                 <button className="hover:bg-brand/10 rounded-full p-2 transition-colors">
                   <MapPin size={20} />
+                </button>
+                <button 
+                  onClick={() => setShowRecorder(!showRecorder)}
+                  className={`hover:bg-brand/10 rounded-full p-2 transition-colors ${showRecorder ? "text-brand bg-brand/10" : ""}`}
+                >
+                  <Mic size={20} />
                 </button>
               </div>
 

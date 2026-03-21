@@ -28,11 +28,15 @@ import {
   Archive,
   ArrowUpRight,
   X,
+  Mic,
+  Send as SendIcon,
 } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
 import { PostModal } from "./post-modal"
 import { ShareModal } from "./share-modal" // Added
+import { AudioRecorder } from "./audio-recorder"
+import { AudioPlayer } from "./audio-player"
 import { useSession } from "next-auth/react"
 
 interface ThoughtActionsProps {
@@ -64,7 +68,9 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
   
   // Edit modal state
   const [showEditModal, setShowEditModal] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false) // Added
+  const [showShareModal, setShowShareModal] = useState(false) 
+  const [showCommentRecorder, setShowCommentRecorder] = useState(false)
+  const [commentAudioUrl, setCommentAudioUrl] = useState<string | null>(null)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const isOwner = session?.user?.id === thought.userId
@@ -91,7 +97,7 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
   }
 
   async function submitComment() {
-    if (!commentText.trim() || submitting) return
+    if ((!commentText.trim() && !commentAudioUrl) || submitting) return
     setSubmitting(true)
     try {
       const res = await fetch("/api/social/comment", {
@@ -100,7 +106,9 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
         body: JSON.stringify({ 
           content: commentText.trim(), 
           thoughtId: thought.id,
-          parentCommentId: replyTo?.id || null 
+          parentCommentId: replyTo?.id || null,
+          mediaUrl: commentAudioUrl || undefined,
+          mediaType: commentAudioUrl ? "audio" : undefined
         }),
       })
       if (res.ok) {
@@ -118,7 +126,25 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
         }
         setCommentText("")
         setReplyTo(null)
+        setCommentAudioUrl(null)
         setCommentCount((c: number) => c + 1)
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleAudioComment(blob: Blob) {
+    setShowCommentRecorder(false)
+    setSubmitting(true)
+    try {
+      const file = new File([blob], "comment-voice.webm", { type: "audio/webm" })
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch("/api/upload", { method: "POST", body: formData })
+      if (res.ok) {
+        const { url } = await res.json()
+        setCommentAudioUrl(url)
       }
     } finally {
       setSubmitting(false)
@@ -328,12 +354,39 @@ export function ThoughtActions({ thought, onUpdate }: ThoughtActionsProps) {
                   placeholder={replyTo ? `Sua resposta...` : "Adicione um comentário..."}
                   className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
                 />
-                <button onClick={submitComment} disabled={submitting || !commentText.trim()} className="text-brand hover:scale-110 active:scale-95 transition-all disabled:opacity-30">
-                  {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                </button>
+                
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setShowCommentRecorder(!showCommentRecorder)}
+                    className={`p-2 rounded-full transition-colors ${showCommentRecorder ? "bg-brand/10 text-brand" : "text-text-muted hover:text-brand hover:bg-brand/10"}`}
+                  >
+                    <Mic size={16} />
+                  </button>
+                  <button onClick={submitComment} disabled={submitting || (!commentText.trim() && !commentAudioUrl)} className="text-brand hover:scale-110 active:scale-95 transition-all disabled:opacity-30">
+                    {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
+          {showCommentRecorder && (
+            <div className="mt-2 ml-12">
+              <AudioRecorder 
+                onRecordingComplete={handleAudioComment}
+                onCancel={() => setShowCommentRecorder(false)}
+              />
+            </div>
+          )}
+
+          {commentAudioUrl && (
+            <div className="mt-2 ml-12 flex items-center gap-2">
+              <AudioPlayer src={commentAudioUrl} className="flex-1 scale-95 origin-left" />
+              <button onClick={() => setCommentAudioUrl(null)} className="p-2 text-text-muted hover:text-red-500 transition-colors">
+                <Trash2 size={16} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -359,7 +412,10 @@ function CommentItem({ comment, isReply, isOwner, onReply, onHeart, authorId }: 
             {isPostAuthor && <span className="bg-brand/10 text-brand text-[9px] px-1.5 py-0.5 rounded-full font-bold border border-brand/20 uppercase tracking-wider">Autor</span>}
             <span className="text-text-muted text-[11px]">{ago}</span>
           </div>
-          <p className="text-[14px] text-text-secondary leading-normal mt-0.5">{comment.content}</p>
+          {comment.content && <p className="text-[14px] text-text-secondary leading-normal mt-0.5">{comment.content}</p>}
+          {comment.mediaUrl && comment.mediaType === "audio" && (
+            <AudioPlayer src={comment.mediaUrl} className="mt-2 scale-90 origin-left border-none bg-bg-overlay/50" />
+          )}
           
           <div className="flex items-center gap-4 mt-1.5 opacity-60 hover:opacity-100 transition-opacity">
             {!isReply && onReply && (
