@@ -32,6 +32,7 @@ export function PostModal({ type, onClose }: PostModalProps) {
       case "SHORT_VIDEO": return "Vídeo Curto"
       case "PROMPT": return "Criar Prompt IA"
       case "THOUGHT": return "Novo Pensamento"
+      case "STORY": return "Novo Story"
       default: return "Criar Publicação"
     }
   }
@@ -43,17 +44,29 @@ export function PostModal({ type, onClose }: PostModalProps) {
       case "SHORT_VIDEO": return <Play className="text-pink-500" />
       case "PROMPT": return <Sparkles className="text-purple-500" />
       case "THOUGHT": return <Lightbulb className="text-yellow-500" />
+      case "STORY": return <Sparkles className="text-brand" />
       default: return <Globe className="text-brand" />
     }
   }
 
   async function handleSubmit() {
+    if ((type === "PHOTO" || type === "VIDEO" || type === "SHORT_VIDEO" || type === "STORY") && !mediaUrl) {
+      alert("Por favor, adicione um link de mídia.")
+      return
+    }
+
     setLoading(true)
     try {
-      const endpoint = type === "PROMPT" ? "/api/prompts" : "/api/thoughts"
-      const body = type === "PROMPT" 
-        ? { title: "Novo Prompt", content, isPublic }
-        : { content, type, mediaUrl, mediaType: type.toLowerCase(), isPublic }
+      let endpoint = "/api/thoughts"
+      let body: any = { content, type, mediaUrl, mediaType: type.toLowerCase(), isPublic }
+
+      if (type === "PROMPT") {
+        endpoint = "/api/prompts"
+        body = { title: "Novo Prompt", content, isPublic }
+      } else if (type === "STORY") {
+        endpoint = "/api/stories"
+        body = { mediaUrl, mediaType: "image" } // Default to image for now
+      }
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -63,7 +76,7 @@ export function PostModal({ type, onClose }: PostModalProps) {
 
       if (res.ok) {
         onClose()
-        window.location.reload() // Dynamic refresh
+        window.location.reload()
       }
     } catch (error) {
       console.error(error)

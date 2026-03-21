@@ -19,6 +19,7 @@ export function FABCreate() {
   const [modalType, setModalType] = useState<string | null>(null)
 
   const actions = [
+    { id: "STORY", icon: <PlusCircle size={20} />, label: "Story", color: "bg-brand" },
     { id: "PHOTO", icon: <ImageIcon size={20} />, label: "Foto", color: "bg-blue-500" },
     { id: "VIDEO", icon: <Video size={20} />, label: "Vídeo", color: "bg-red-500" },
     { id: "SHORT_VIDEO", icon: <Play size={20} />, label: "Vídeo Curto", color: "bg-pink-500" },

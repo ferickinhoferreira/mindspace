@@ -26,9 +26,18 @@ export async function GET(req: Request) {
         ],
       },
       include: {
-        user: { select: { name: true, image: true, id: true } },
+        user: { 
+          select: { 
+            name: true, 
+            image: true, 
+            id: true,
+            followers: { where: { followerId: userId } }
+          } 
+        },
         likes: { where: { userId } },
-        _count: { select: { likes: true, comments: true } },
+        republishes: { where: { userId } },
+        savedBy: { where: { userId } },
+        _count: { select: { likes: true, comments: true, republishes: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -41,9 +50,18 @@ export async function GET(req: Request) {
     const thoughts = await prisma.thought.findMany({
       where: { isPublic: true },
       include: {
-        user: { select: { name: true, image: true, id: true } },
+        user: { 
+          select: { 
+            name: true, 
+            image: true, 
+            id: true,
+            followers: { where: { followerId: userId } }
+          } 
+        },
         likes: { where: { userId } },
-        _count: { select: { likes: true, comments: true } },
+        republishes: { where: { userId } },
+        savedBy: { where: { userId } },
+        _count: { select: { likes: true, comments: true, republishes: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 30,

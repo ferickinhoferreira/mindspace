@@ -17,7 +17,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         banner: true,
         bio: true,
         _count: {
-          select: { followers: true, following: true },
+          select: { followers: true, following: true, thoughts: true },
         },
       },
     })
@@ -27,9 +27,29 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const thoughts = await prisma.thought.findMany({
       where: { userId: id, isPublic: true },
       include: {
-        _count: { select: { likes: true, comments: true } },
+        user: { select: { name: true, image: true, id: true } },
+        likes: { where: { userId: userId || "" } },
+        republishes: { where: { userId: userId || "" } },
+        savedBy: { where: { userId: userId || "" } },
+        _count: { select: { likes: true, comments: true, republishes: true } }
       },
       orderBy: { createdAt: "desc" },
+    })
+
+    const republishes = await prisma.republish.findMany({
+      where: { userId: id },
+      include: {
+        thought: {
+          include: {
+            user: { select: { name: true, image: true, id: true } },
+            likes: { where: { userId: userId || "" } },
+            republishes: { where: { userId: userId || "" } },
+            savedBy: { where: { userId: userId || "" } },
+            _count: { select: { likes: true, comments: true, republishes: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
     })
 
     let isFollowing = false
@@ -45,7 +65,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       isFollowing = !!follow
     }
 
-    return NextResponse.json({ user, thoughts, isFollowing })
+    return NextResponse.json({ 
+      user, 
+      thoughts, 
+      republishes: republishes.map(r => r.thought),
+      isFollowing 
+    })
   } catch (error) {
     return NextResponse.json({ error: "Error fetching profile" }, { status: 500 })
   }

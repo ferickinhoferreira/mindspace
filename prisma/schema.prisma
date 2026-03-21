@@ -28,6 +28,9 @@ model User {
   following     Follow[]  @relation("UserFollowing")
   likes         Like[]
   comments      Comment[]
+  republishes   Republish[]
+  savedPosts    Save[]
+  stories       Story[]
 
   accounts  Account[]
   sessions  Session[]
@@ -124,6 +127,8 @@ model Thought {
   tags ThoughtTag[]
   likes    Like[]
   comments Comment[]
+  republishes Republish[]
+  savedBy     Save[]
 
   @@index([userId])
   @@index([type])
@@ -245,4 +250,41 @@ enum ThoughtType {
   PHOTO
   VIDEO
   POST
+}
+
+model Republish {
+  id        String   @id @default(cuid())
+  userId    String
+  thoughtId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thought Thought @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, thoughtId])
+}
+
+model Save {
+  id        String   @id @default(cuid())
+  userId    String
+  thoughtId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thought Thought @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, thoughtId])
+}
+
+model Story {
+  id        String   @id @default(cuid())
+  mediaUrl  String
+  mediaType String   @default("image") // "image", "video"
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
 }
